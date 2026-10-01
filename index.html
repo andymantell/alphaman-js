@@ -23,19 +23,30 @@
     display: flex; flex-direction: column; align-items: center; gap: 16px;
   }
   #game { width: 100%; max-width: 1080px; }
+  /* With the 3D view on, the minimap sits to the left of the game screen. */
+  #game.with-minimap { max-width: calc(1080px + var(--minimap-width) + 12px); }
+  :root { --minimap-width: 260px; }
+  #playarea { display: flex; gap: 12px; align-items: flex-start; }
+  #playarea > #viewport { flex: 1; min-width: 0; }
+  #minimap {
+    flex: none; width: var(--minimap-width); height: auto;
+    image-rendering: pixelated; background: #000; border: 1px solid var(--border);
+  }
+  #minimap[hidden] { display: none; }
   #viewport { position: relative; border: 1px solid var(--border); background: #000; }
   #screenbox { position: relative; }
-  /* Full screen: the game screen scaled up as far as it fits, centred on black. */
-  #viewport:fullscreen {
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    width: 100vw; height: 100vh; border: 0;
+  /* Full screen: the game screen (and the minimap, with the 3D view) scaled
+     up as far as it fits, centred on black. */
+  #playarea:fullscreen {
+    --mm: 0px;
+    align-items: center; justify-content: center;
+    width: 100vw; height: 100vh; background: #000; gap: 1vw;
   }
-  #viewport:fullscreen #screenbox { width: min(100vw, calc((100vh - 2em) * 720 / 400)); }
-  #viewport:-webkit-full-screen {
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    width: 100vw; height: 100vh; border: 0;
+  #playarea.with-minimap:fullscreen { --mm: calc(var(--minimap-width) + 1vw); }
+  #playarea:fullscreen > #viewport {
+    flex: none; border: 0;
+    width: min(calc(100vw - var(--mm)), calc((100vh - 2em) * 720 / 400));
   }
-  #viewport:-webkit-full-screen #screenbox { width: min(100vw, calc((100vh - 2em) * 720 / 400)); }
   #screen {
     display: block; width: 100%; height: auto;
     image-rendering: pixelated; background: #000;
@@ -85,11 +96,14 @@
 </head>
 <body>
 <main id="game">
+  <div id="playarea">
+  <canvas id="minimap" width="468" height="352" hidden aria-label="Minimap: the 2D map"></canvas>
   <div id="viewport">
     <div id="screenbox">
       <canvas id="screen" width="720" height="400" aria-label="AlphaMan game screen"></canvas>
     </div>
     <p id="status" role="status"></p>
+  </div>
   </div>
   <div id="controls">
     <button id="fullscreen" type="button">Full screen (Alt+Enter)</button>

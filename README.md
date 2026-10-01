@@ -198,6 +198,9 @@ they are. **Shift+F8** (or the menu) picks the camera:
   sideways and 7/9/1/3 move diagonally.
 * *Tabletop* looks down on the area with north up; the keys are unchanged.
 
+While the 3D view is showing, a minimap to the left of the game screen shows
+the 2D map, shrunk down.
+
 Holding a movement key walks at a steady pace (a third of the keyboard's
 auto-repeat rate), and turning while walking keeps you walking in the new
 direction.

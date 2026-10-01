@@ -13,7 +13,8 @@
 
   // Full screen (the button or Alt+Enter): the game screen, with the 3D view
   // when it is on, scaled up to fill the display.
-  const viewport = document.getElementById('viewport');
+  // (The play area holds the screen and, with the 3D view, the minimap.)
+  const viewport = document.getElementById('playarea') || document.getElementById('viewport');
   const fsButton = document.getElementById('fullscreen');
   const fsElement = () => document.fullscreenElement || document.webkitFullscreenElement;
   function toggleFullScreen() {

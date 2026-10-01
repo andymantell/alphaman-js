@@ -370,6 +370,24 @@ function faceCamera() {
   return changed;
 }
 
+// ------------------------------------------------------------ minimap
+// The map part of the 2D screen (which keeps being drawn under the 3D view),
+// copied to a small canvas beside the game while the 3D view is showing.
+const minimap = document.getElementById('minimap');
+const minimapCtx = minimap ? minimap.getContext('2d') : null;
+const gameBox = document.getElementById('game');
+function showMinimap(show) {
+  if (!minimap || minimap.hidden === !show) return;
+  minimap.hidden = !show;
+  gameBox.classList.toggle('with-minimap', show);
+  minimap.parentElement.classList.toggle('with-minimap', show);
+}
+function drawMinimap() {
+  if (!minimapCtx || minimap.hidden) return;
+  // Columns 1-52 and rows 1-22 of the 720 x 400 screen.
+  minimapCtx.drawImage(screenCanvas, 0, 0, COLS * 9, ROWS * 16, 0, 0, minimap.width, minimap.height);
+}
+
 // ------------------------------------------------------------ main loop
 // Draws only when something changed or is still moving.
 let last = performance.now();
@@ -377,9 +395,11 @@ let needRender = true;
 function frame(now) {
   requestAnimationFrame(frame);
   const dt = Math.min(0.1, (now - last) / 1000); last = now;
-  if (!view.on) return;
+  if (!view.on) { showMinimap(false); return; }
   if (update()) needRender = true;
+  showMinimap(overlayShown);
   if (!overlayShown) return;
+  drawMinimap();
   const hide = view.scene === 'local' && view.camera === 'first' ? 1 : -1;
   if (animateMobiles(mobiles.local, dt, hide)) needRender = true;
   if (animateMobiles(mobiles.world, dt, -1)) needRender = true;
