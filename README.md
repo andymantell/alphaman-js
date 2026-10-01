@@ -193,6 +193,8 @@ Developer tools:
 * `node tools/check-async.mjs` - checks that every call to a routine that
   waits for the player is awaited
 * `node tools/lint.mjs` - checks the scripts for undefined names (needs eslint)
+* `node tools/check-for-bounds.mjs` - finds `for` loops whose end value can
+  change inside the loop (QuickBasic evaluates it only once)
 
 `data/ALPHAMAN.5` (the help text read by the `?` screen) has no generator
 program in the source; it is the file from the 1.1 release (`alphaman-11.zip`
