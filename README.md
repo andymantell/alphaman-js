@@ -206,9 +206,12 @@ direction.
 away; the original waits at least one second there and drops any keys
 pressed meanwhile, which the 2D game still does.
 
-Outdoors, the neighbouring areas are shown dimmed: their terrain and
-buildings, exactly as the game will make them when you walk in (creatures and
-items only appear when you arrive). Everything else, including what you can
+Outdoors, the neighbouring areas are shown too, exactly as the game will
+make them when you walk in. Areas you have not visited yet are in grey and
+show only their terrain and buildings; areas you have visited are in colour
+and also show the items lying there (including anything you dropped).
+Creatures only appear when you arrive. The camera glides along while you
+walk, though you still move a square at a time. Everything else, including what you can
 see at night and inside castles, follows the 2D game.
 
 The 3D view lives in `js/view3d/` and uses [three.js](https://threejs.org/)

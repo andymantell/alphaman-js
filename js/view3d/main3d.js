@@ -13,14 +13,15 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { glyphGeometry, glyphHeight, isMobile, standingGeometry, standHeight } from './glyphs.js';
 import { Layer, EGA } from './layer.js';
-import { previewArea } from './preview.js';
+import { previewArea, visitedArea } from './preview.js';
 import { installInput } from './input.js';
 
 const COLS = 52, ROWS = 22;                // the map part of the 80 x 25 screen
 const CORNERS = new Set([218, 191, 192, 217, 201, 187, 200, 188]);
 const CAMERAS = { behind: 'Behind', first: 'First person', table: 'Tabletop' };
 const CASTLE_ORIGIN = -10000;              // keeps castle levels apart from the outdoors
-const PREVIEW_BRIGHTNESS = 0.32;
+const VISITED_BRIGHTNESS = 0.6;      // neighbouring areas you have been to: in colour, with items
+const UNVISITED_BRIGHTNESS = 0.42;   // areas not yet visited: terrain only, in grey
 
 // ------------------------------------------------------------ page and overlay
 const screenCanvas = document.getElementById('screen');
@@ -195,9 +196,12 @@ function refreshPreviews() {
   const show = outdoors && dark === 0;
   if (previewGroup.visible !== show) { previewGroup.visible = show; needRender = true; }
   if (!outdoors) return;
-  if (previewSeed !== seed) {
+  // Rebuilt on each change of area: the areas round about may have become
+  // visited, and items may have been picked up or dropped.
+  const key = `${seed},${mainx},${mainy}`;
+  if (previewSeed !== key) {
     for (const l of previews.values()) l.dispose();
-    previews.clear(); previewSeed = seed;
+    previews.clear(); previewSeed = key;
   }
   const want = new Set();
   for (let dy = -1; dy <= 1; dy++) {
@@ -207,8 +211,9 @@ function refreshPreviews() {
   for (const k of want) {
     if (previews.has(k)) continue;
     const [mx, my] = k.split(',').map(Number);
-    const cells = previewArea(mx, my);
-    const layer = new Layer(previewGroup, PREVIEW_BRIGHTNESS);
+    const visited = visitedArea(mx, my);
+    const cells = previewArea(mx, my, visited);
+    const layer = new Layer(previewGroup, visited ? VISITED_BRIGHTNESS : UNVISITED_BRIGHTNESS, !visited);
     layer.setStanding(standing);
     if (cells) layer.set(cells.map(([x, y, v]) => [(mx - 2) * 50 + x - 2, (my - 2) * 20 + y - 2, v]));
     previews.set(k, layer);
@@ -287,7 +292,8 @@ function placeCamera(dt) {
   const mode = view.scene === 'world' ? 'world' : view.camera;
   const yaw = mode === 'behind' || mode === 'first' ? view.yaw : 0;
   const fx = Math.sin(yaw), fz = -Math.cos(yaw);
-  tmpTarget.copy(view.player);
+  followPlayer(dt);
+  tmpTarget.copy(follow);
   switch (mode) {
     case 'behind':
       camGoal.set(tmpTarget.x - fx * 5.5, 4.2, tmpTarget.z - fz * 5.5);
@@ -305,8 +311,11 @@ function placeCamera(dt) {
       camGoal.set(tmpTarget.x, 34, tmpTarget.z + 20);
       lookGoal.set(tmpTarget.x, 0, tmpTarget.z);
   }
-  const k = cameraPlaced ? 1 - Math.exp(-dt * 8) : 1;
-  const moving = camera.position.distanceToSquared(camGoal) > 1e-6 || lookAt.distanceToSquared(lookGoal) > 1e-6;
+  // The follow point already moves smoothly; this only softens camera and
+  // mode changes.
+  const k = cameraPlaced ? 1 - Math.exp(-dt * 20) : 1;
+  const moving = camera.position.distanceToSquared(camGoal) > 1e-6 || lookAt.distanceToSquared(lookGoal) > 1e-6 ||
+    follow.distanceToSquared(view.player) > 1e-6;
   camera.position.lerp(camGoal, k);
   lookAt.lerp(lookGoal, k);
   camera.lookAt(lookAt);
@@ -315,6 +324,30 @@ function placeCamera(dt) {
   return moving;
 }
 const fog = new THREE.Fog(0x000000, 16, 42);
+
+// The camera follows a point that glides after the character at a steady
+// speed (the speed it has been walking at), so the view moves smoothly
+// while the character itself steps from square to square.
+const follow = new THREE.Vector3(), lastPlayer = new THREE.Vector3();
+let walkSpeed = 6, lastStepAt = 0, followPlaced = false;
+function followPlayer(dt) {
+  const now = performance.now();
+  if (!followPlaced || follow.distanceTo(view.player) > 4) {   // start, teleport, new level
+    follow.copy(view.player); lastPlayer.copy(view.player); followPlaced = true; lastStepAt = now;
+    return;
+  }
+  if (!lastPlayer.equals(view.player)) {
+    const stepped = lastPlayer.distanceTo(view.player);
+    const t = Math.max(0.05, (now - lastStepAt) / 1000);
+    if (stepped < 2 && t < 1) walkSpeed = walkSpeed * 0.75 + (stepped / t) * 0.25;
+    lastPlayer.copy(view.player); lastStepAt = now;
+  }
+  const gap = follow.distanceTo(view.player);
+  if (gap < 1e-3) { follow.copy(view.player); return; }
+  // Steady speed, a little faster when lagging behind, easing in to stop.
+  const speed = Math.max(2, walkSpeed) * (gap > 1.5 ? 1.5 : 1) * Math.min(1, 0.35 + gap);
+  follow.lerp(view.player, Math.min(1, (speed * dt) / gap));
+}
 
 // Stands characters up (or lays them down) for the camera in use, and turns
 // the upright ones to face it.
@@ -387,7 +420,7 @@ function setOverlay(show) {
   if (show === overlayShown) return;
   overlayShown = show;
   canvas.style.display = show ? 'block' : 'none';
-  if (show) { resize(); cameraPlaced = false; needRender = true; }
+  if (show) { resize(); cameraPlaced = false; followPlaced = false; needRender = true; }
 }
 function setOn(on) {
   view.on = on;
@@ -416,4 +449,4 @@ setOn(false);
 installInput(view);
 
 // For tests and tinkering in the console.
-window.AlphaMan3D = { view, bloom, camera, scene, previews, previewArea, setOn, setCamera };
+window.AlphaMan3D = { view, bloom, camera, scene, previews, previewArea, visitedArea, setOn, setCamera };

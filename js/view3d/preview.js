@@ -8,8 +8,12 @@
 // the game's own cdetailedmap, box, finddot and PutSym.  Those write to the
 // game's screen pages and random number generators, so everything they touch
 // is saved first and put back afterwards: the game never sees a difference.
-// Creatures, items, traps and webs are not previewed; they only exist once
-// the character arrives.
+// For areas the character has already visited, the items lying there are
+// added too: the game remembers which of an area's items are still there
+// (goodythere), places them with the area's seeded random numbers
+// (MakeStuff), and keeps a list of items dropped in each area (drgoody).
+// Creatures, traps and webs are not previewed; they only appear once the
+// character arrives.
 
 const MAIN_TERRAIN = new Set([15, 42, 32, 176, 177, 247, 234, 239, 30, 94, 127, 71]);
 const BUILDINGS = new Set([234, 239, 30, 94, 127, 71]);
@@ -25,10 +29,15 @@ function enteredTerrain(mx, my) {
   return t;
 }
 
+// Shared variables that the item placement (MakeStuff) reads or writes.
+const PLACEMENT_GLOBALS = ['bldg', 'lwscr', 'rwscr', 'twscr', 'bwscr'];
+
 function saveState() {
   return {
     pag2: pag2.map((col) => (col ? Array.from(col) : col)),
     page1: SCR.pages[1].slice(),
+    localgoody: localgoody.map((row) => (row ? Array.from(row) : row)),
+    globals: PLACEMENT_GLOBALS.map((n) => globalThis[n]),
     dirty: SCR.dirty,
     rndSeed, rndLast, cRandState,
   };
@@ -36,13 +45,23 @@ function saveState() {
 
 function restoreState(s) {
   for (let x = 0; x < s.pag2.length; x++) if (s.pag2[x]) pag2[x].set(s.pag2[x]);
+  for (let i = 0; i < s.localgoody.length; i++) if (s.localgoody[i]) localgoody[i].set(s.localgoody[i]);
+  PLACEMENT_GLOBALS.forEach((n, i) => { globalThis[n] = s.globals[i]; });
   SCR.pages[1].set(s.page1);
   SCR.dirty = s.dirty;
   rndSeed = s.rndSeed; rndLast = s.rndLast; cRandState = s.cRandState;
 }
 
-// Generates main map square (mx, my) into the game's page 2 (pag2).
-function generate(mx, my) {
+// Has the character been in main map square (mx, my)?  (DetailedMap sets
+// bit 2 of the high byte of goodythere when an area has been seen.)
+export function visitedArea(mx, my) {
+  if (mx < 2 || mx > 51 || my < 2 || my > 21) return false;
+  return (goodythere[mx][my] & 512) !== 0;
+}
+
+// Generates main map square (mx, my) into the game's page 2 (pag2), with
+// its items if withItems.
+function generate(mx, my, withItems) {
   const ter = enteredTerrain(mx, my);
   const scratchT = [0, 0, 0, 0, 0];
   let x = 0;
@@ -116,6 +135,7 @@ function generate(mx, my) {
       PutSym(monosym, xm, ym, 11, 0, 2);
     }
   }
+  const bldg2 = bldg, lw = lwscr, rw = rwscr, tw = twscr, bw = bwscr;
   if (bldg) {
     box(lwscr, rwscr, twscr, bwscr, 2, wallcolr, 2);
     if (castleNo === 6) {
@@ -145,16 +165,86 @@ function generate(mx, my) {
       for (let j = twscr + 1; j <= bwscr - 1; j++) PutSym(32, i, j, 7, 0, 2);
     }
   }
+  if (!withItems) return;
+
+  // The rest of DetailedMap up to the items, in the same order so the random
+  // numbers come out the same.
+  let lobyte = 0, numcre = 0, nstuff = 0;
+  for (let i = 1, n = ncastle + nruins; i <= n; i++) lobyte = cint(rnd() * cRoll(2));
+  const r200 = cRoll(200);
+  if (r200 <= 20) numcre = 0;
+  else if (r200 <= 85) numcre = 1;
+  else if (r200 <= 155) numcre = 2;
+  else if (r200 <= 187) numcre = 3;
+  else if (r200 <= 197) numcre = 4;
+  else if (r200 <= 199) numcre = 5;
+  else numcre = 5 + cRoll(5);
+  if ((ter === 15 || ter === 177)) numcre = numcre + 1;
+  if ((ter === 42 || ter === 176) && rnd() < 0.5) numcre = numcre + 1;
+  if (ter === 247) numcre = numcre + rolldice(2, 4, 4) - 4;
+  const g = goodythere[mx][my];
+  lobyte = imod(g, 256);
+  let hibyte = idiv(g - lobyte, 256);
+  const r100 = cRoll(100);
+  if (r100 <= 20) nstuff = 0;
+  else if (r100 <= 69) nstuff = 1;
+  else if (r100 <= 93) nstuff = 2;
+  else if (r100 <= 98) nstuff = 3;
+  else if (r100 === 99) nstuff = 4;
+  else nstuff = 4 + cRoll(4);
+  if (nstuff < numcre - 3) nstuff = numcre - 3;
+  if (nstuff > numcre + 1) numcre = nstuff - 1 + qb(cRoll(3) === 1);
+  if (nstuff > 8) nstuff = 8;
+  if (ter === 247) nstuff = 0;
+  // MakeStuff reads the building's position from the shared variables and
+  // checks page 1, which the game has just cleared at this point.
+  // (The names are shadowed by this function's own variables.)
+  globalThis.bldg = bldg2; globalThis.lwscr = lw; globalThis.rwscr = rw;
+  globalThis.twscr = tw; globalThis.bwscr = bw;
+  SCR.pages[1].fill(0x0720);
+  for (let i = 1; i <= nstuff; i++) MakeStuff(i);
+  if ((hibyte & 4) === 0) {
+    lobyte = cint(lobyte + 2 ** nstuff - 1); hibyte = hibyte | 1;
+  }
+  for (let i = 1; i <= nstuff; i++) {
+    if ((lobyte & 2 ** (i - 1))) {
+      const s = imod(localgoody[i][1], 256), f = idiv(localgoody[i][1], 256);
+      PutSym(s, localgoody[i][2], localgoody[i][3], f, 0, 2);
+    }
+  }
+  // Items the character dropped here.
+  for (let i = 1; i <= ndropped; i++) {
+    if (drgoody[i][13] === mx && drgoody[i][14] === my) {
+      const th = Math.abs(drgoody[i][1]);
+      let sym = 0, fc = 0, bc = 0;
+      if (th !== 9) {
+        sym = symb[th][1]; fc = symb[th][2]; bc = symb[th][3];
+      } else {
+        switch (drgoody[i][3]) {
+          case 1: sym = 147; fc = 15; break;
+          case 2: sym = 167; fc = 12; break;
+          case 3: sym = 7 + cRoll(2) * 11; fc = 15; break;
+          case 4: sym = 145; fc = 1; break;
+          case 5: sym = 234; fc = 15; break;
+          case 6: sym = 225; fc = 6; break;
+          case 7: sym = 35; fc = 6; break;
+          case 8: sym = 147; fc = 1; break;
+          case 9: sym = 147; fc = 14; break;
+        }
+      }
+      PutSym(sym, drgoody[i][15], drgoody[i][16], fc, bc, 2);
+    }
+  }
 }
 
 // Returns the cells (2..51, 2..21) of main map square (mx, my) as an array
 // of [x, y, attr << 8 | code], or null if it is not an area on the map.
-export function previewArea(mx, my) {
+export function previewArea(mx, my, withItems = visitedArea(mx, my)) {
   if (mx < 2 || mx > 51 || my < 2 || my > 21) return null;
   const saved = saveState();
   const cells = [];
   try {
-    generate(mx, my);
+    generate(mx, my, withItems);
     for (let x = 2; x <= 51; x++) {
       for (let y = 2; y <= 21; y++) {
         const v = pag2[x][y];

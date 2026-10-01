@@ -14,10 +14,12 @@ const pos = new THREE.Vector3(), quat = new THREE.Quaternion(), scl = new THREE.
 const UP = new THREE.Vector3(0, 1, 0), NO_TURN = new THREE.Quaternion();
 
 export class Layer {
-  // brightness scales every colour (used to dim the previews).
-  constructor(parent, brightness = 1) {
+  // brightness scales every colour (used to dim the previews); grey turns
+  // the colours to shades of grey (areas not yet visited).
+  constructor(parent, brightness = 1, grey = false) {
     this.group = new THREE.Group();
     this.brightness = brightness;
+    this.grey = grey;
     this.cells = [];
     this.standing = false;
     this.yaw = 0;
@@ -80,13 +82,13 @@ export class Layer {
         const fc = (v >> 8) & 15;
         pos.set(x + 0.5, 0, z + 0.5); scl.set(1, glyphHeight(code, fc), 1);
         mesh.setMatrixAt(i, m4.compose(pos, NO_TURN, scl));
-        mesh.setColorAt(i, color.copy(EGA[fc]).multiplyScalar(this.brightness));
+        mesh.setColorAt(i, this.tint(EGA[fc]));
       });
       this.group.add(mesh);
     }
     for (const [code, list] of up) {
       const mesh = new THREE.InstancedMesh(standingGeometry(code), glyphMaterial, list.length);
-      list.forEach(([, , v], i) => mesh.setColorAt(i, color.copy(EGA[(v >> 8) & 15]).multiplyScalar(this.brightness)));
+      list.forEach(([, , v], i) => mesh.setColorAt(i, this.tint(EGA[(v >> 8) & 15])));
       this.group.add(mesh);
       this.upright.push({ mesh, list, code });
     }
@@ -99,10 +101,20 @@ export class Layer {
         const bc = (v >> 12) & 7;
         pos.set(x + 0.5, 0.002, z + 0.5); scl.set(1, 1, 1);
         mesh.setMatrixAt(i, m4.compose(pos, NO_TURN, scl));
-        mesh.setColorAt(i, color.copy(EGA[bc]).multiplyScalar(0.55 * this.brightness));
+        mesh.setColorAt(i, this.tint(EGA[bc]).multiplyScalar(0.55));
       });
       this.group.add(mesh);
     }
+  }
+
+  // A palette colour as this layer shows it.
+  tint(c) {
+    color.copy(c);
+    if (this.grey) {
+      const l = 0.3 * c.r + 0.59 * c.g + 0.11 * c.b;
+      color.setRGB(l, l, l);
+    }
+    return color.multiplyScalar(this.brightness);
   }
 
   dispose() { this.clear(); this.group.removeFromParent(); }
