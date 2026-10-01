@@ -198,15 +198,20 @@ they are. **Shift+F8** (or the menu) picks the camera:
   sideways and 7/9/1/3 move diagonally.
 * *Tabletop* looks down on the area with north up; the keys are unchanged.
 
+*Fast area changes* (on by default, 3D only) enters a new area straight
+away; the original waits at least one second there and drops any keys
+pressed meanwhile, which the 2D game still does.
+
 Outdoors, the neighbouring areas are shown dimmed: their terrain and
 buildings, exactly as the game will make them when you walk in (creatures and
 items only appear when you arrive). Everything else, including what you can
 see at night and inside castles, follows the 2D game.
 
 The 3D view lives in `js/view3d/` and uses [three.js](https://threejs.org/)
-from a CDN. It only reads the game's screen and variables; its only effect on
-the game is sending keypresses, so the game plays exactly the same with or
-without it.
+from a CDN. It only reads the game's screen and variables and sends
+keypresses. The one exception is a small hook (`GameHooks` in
+`js/runtime/io.js`) for fast area changes, which does nothing while the 3D
+view is off, so the 2D game plays exactly as before.
 
 Developer tools:
 
