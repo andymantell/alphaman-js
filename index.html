@@ -23,7 +23,19 @@
     display: flex; flex-direction: column; align-items: center; gap: 16px;
   }
   #game { width: 100%; max-width: 1080px; }
-  #viewport { position: relative; border: 1px solid var(--border); background: #000; }
+  #viewport { border: 1px solid var(--border); background: #000; }
+  #screenbox { position: relative; }
+  /* Full screen: the game screen scaled up as far as it fits, centred on black. */
+  #viewport:fullscreen {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    width: 100vw; height: 100vh; border: 0;
+  }
+  #viewport:fullscreen #screenbox { width: min(100vw, calc((100vh - 2em) * 720 / 400)); }
+  #viewport:-webkit-full-screen {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    width: 100vw; height: 100vh; border: 0;
+  }
+  #viewport:-webkit-full-screen #screenbox { width: min(100vw, calc((100vh - 2em) * 720 / 400)); }
   #screen {
     display: block; width: 100%; height: auto;
     image-rendering: pixelated; background: #000;
@@ -34,13 +46,15 @@
     width: calc(100% * 52 / 80); height: calc(100% * 22 / 25);
     display: none;
   }
-  #view3d-controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+  #controls, #view3d-controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  #controls { margin-top: 8px; }
   #view3d-controls select {
     font: inherit; color: var(--text); background: #2a2a36;
     border: 1px solid var(--border); border-radius: 4px; padding: 3px 6px;
   }
   #view3d-controls .hint { color: var(--muted); font-size: 13px; }
-  #status { min-height: 1.45em; margin: 8px 0 0; color: var(--accent); }
+  #status { margin: 0; padding: 4px 8px; color: var(--accent); background: #000; text-align: center; }
+  #status:empty { display: none; }
   #saves {
     width: 100%; max-width: 1080px;
     background: var(--panel); border: 1px solid var(--border); border-radius: 6px;
@@ -71,10 +85,15 @@
 <body>
 <main id="game">
   <div id="viewport">
-    <canvas id="screen" width="720" height="400" aria-label="AlphaMan game screen"></canvas>
+    <div id="screenbox">
+      <canvas id="screen" width="720" height="400" aria-label="AlphaMan game screen"></canvas>
+    </div>
+    <p id="status" role="status"></p>
   </div>
-  <div id="view3d-controls"></div>
-  <p id="status" role="status"></p>
+  <div id="controls">
+    <button id="fullscreen" type="button">Full screen (Alt+Enter)</button>
+    <span id="view3d-controls"></span>
+  </div>
 </main>
 
 <section id="saves" aria-labelledby="saves-title">

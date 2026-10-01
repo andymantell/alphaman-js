@@ -24,7 +24,7 @@ const PREVIEW_BRIGHTNESS = 0.32;
 
 // ------------------------------------------------------------ page and overlay
 const screenCanvas = document.getElementById('screen');
-const viewport = document.getElementById('viewport');
+const viewport = document.getElementById('screenbox');
 const canvas = document.createElement('canvas');
 canvas.id = 'screen3d';
 canvas.setAttribute('aria-label', 'AlphaMan 3D view');

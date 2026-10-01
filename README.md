@@ -182,6 +182,11 @@ Saved games (`NAME.ALF` plus `NAME.SAV`) live in the browser. The list under
 the game screen lets you load, delete, download (as a `.zip` of the original
 DOS files, which also work with the DOS version) and upload them.
 
+### Full screen
+
+The *Full screen* button or **Alt+Enter** shows the game screen (2D, or 3D
+when it is on) scaled up to fill the display; Alt+Enter or Esc goes back.
+
 ### 3D view
 
 Press **F8** (or the *3D view* button) to see the map as extruded neon
