@@ -104,7 +104,7 @@ async function CheckFatPlus() {
       str = str - 3; dex = dex - 3; con = con - 3; rr = rr - 3;
       intl = intl - 3; hitmax = hitmax - 6 - lvl; hits = hits - 6 - lvl;
       if (hits < 0) hits = 0;
-      if (rdisp === 1) DisplayCharacter();
+      if (rdisp === 1) await DisplayCharacter();
     }
   }
 
@@ -248,7 +248,7 @@ async function Dead(spec) {
   killedby$ = st1;
   if (ucase$(left$(killedby$, 4)) === 'YOUR') killedby$ = 'a' + right$(killedby$, len(killedby$) - 4);
   if (left$(killedby$, 3) === 'The') killedby$ = 'a' + right$(killedby$, len(killedby$) - 3);
-  rdisp = 1; ClearMess(); DisplayCharacter();
+  rdisp = 1; ClearMess(); await DisplayCharacter();
   if (spec === 0 || spec === 2) {
     Ljnkbig(3, 19, 24, 0, 0, 0, killedby$, 1, 1); ljnk(3, 1, 18, 3);
     await MessPause(12, 0);
@@ -328,7 +328,7 @@ async function Dead(spec) {
         totalcastles = totalcastles - qb((finishedcastles & 2 ** lll) === 2 ** lll);
       }
       if (totalcastles > 0) {
-        expr = expr + 5000 * totalcastles; ClearMess(); DisplayCharacter();
+        expr = expr + 5000 * totalcastles; ClearMess(); await DisplayCharacter();
         Ljnkbig(395, 1, 11, 395, 19, 24, str$(5000 * totalcastles), 1, 1);
         Ljnkbig(396, 8, 13, 395, 48, 8 + qb(totalcastles === 1), str$(totalcastles), 1, 2);
         await MessPause(10, 0);

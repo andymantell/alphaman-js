@@ -233,7 +233,7 @@ async function DetailedMap(loadmappossible) {
   let ffc = 0, olddark = 0, changed = 0;
   screenPages(0); ljnk(1, 38, 8, 4); ClearMess(); t1 = timer();
   ljnk(1, 46, 18, 2); locate(24, 1); print(l2);
-  vpage = 0; DisplayCharacter();
+  vpage = 0; await DisplayCharacter();
   screenPages(1, 0); ccls(1); screenPages(2, 0); clpage2();
 
   crandomize(seed + 1.3 * mainx + 62.2 * mainy);
@@ -244,7 +244,7 @@ async function DetailedMap(loadmappossible) {
 
   enddm: {
     if (((looking | teleporting) === 0) && loadmappossible) {
-      if (LoadMaps(0)) {
+      if (await LoadMaps(0)) {
         if (starting === -1) starting = 1; else starting = 0;
         break enddm;
       }
@@ -905,7 +905,7 @@ async function KillCreat(i) {
   if (typ === webspid) expadd = expadd * lvl;
   if ((expadd > idiv(expr + 10, 2)) && (expr > 0)) expadd = idiv(expr + 10, 2);
   expr = expr + expadd; [newlev, b$] = await Level(newlev, b$);
-  if (rdisp === 1) DisplayCharacter();
+  if (rdisp === 1) await DisplayCharacter();
   if (newlev) {
     await MaybeMessPause(13, 0);
     Ljnkbig(14, 26, 17, 0, 0, 0, str$(lvl), 1, 1); l2 = b$;

@@ -61,12 +61,12 @@ async function AlphaMan(commandLine) {
         weather = rolldice(3, 2, 1); wind = rolldice(4, 2, 1);
         weather = 4 - weather; wind = 5 - wind;
         firstlocal = TRUE; starting = -1; answer = TRUE;
-        ccls(0); rdisp = 1; fatig = Fatigu(); DisplayCharacter(); await MainMap(FALSE);
+        ccls(0); rdisp = 1; fatig = Fatigu(); await DisplayCharacter(); MainMap(FALSE);
       } else {
         if (await LoadGame(Comm$)) {
           firstlocal = FALSE;
           randomize(seed); x = cint(rnd(-seed)); crandomize(seed);
-          ccls(0); rdisp = 1; fatig = Fatigu(); DisplayCharacter(); await MainMap(TRUE);
+          ccls(0); rdisp = 1; fatig = Fatigu(); await DisplayCharacter(); MainMap(TRUE);
         } else {
           firsttime = FALSE;
           ToLC(); name$ = Comm$; Comm$ = ''; continue newgame;
@@ -75,7 +75,7 @@ async function AlphaMan(commandLine) {
       break;
     }
     if (incastle === 0) { await DetailedMap(FALSE); firstlocal = FALSE; }
-    if (Comm$ !== '') DisplayCharacter();
+    if (Comm$ !== '') await DisplayCharacter();
     didstuff = TRUE;   // for first weather check
 
     mainloop: for (;;) {    // Main Loop of program ==========================
@@ -210,7 +210,7 @@ async function AlphaMan(commandLine) {
           case 1078: case 1079: case 1080: case 1081:      // 78946123
             if (vpage !== 1) {
               vpage = 1; screenPages(1); ljnk(63, 1, 12, 4); SetCombatStats();
-              PrintMessage(7, 0); DisplayCharacter();
+              PrintMessage(7, 0); await DisplayCharacter();
             }
             switch (vehicle) {
               case 1: [response] = await Ride(response, 5 * turbo); fatadd = 0; break;  // hover
@@ -266,7 +266,7 @@ async function AlphaMan(commandLine) {
             await Search(TRUE);
             break;
           case 116:     // t(hrow)
-            await Throw(0); DisplayCharacter();
+            await Throw(0); await DisplayCharacter();
             break;
           case 117:     // u(se)
             await Use();
@@ -278,7 +278,7 @@ async function AlphaMan(commandLine) {
             break;
           case 85:      // U(nuse)
             await UnUse();
-            DisplayCharacter();
+            await DisplayCharacter();
             break;
           case 80:      // P(revious message)
             lsave[1][lpoint] = fixstr('_' + lsave[1][lpoint], 54);
@@ -312,7 +312,7 @@ async function AlphaMan(commandLine) {
           case 88:       // X(amine)
             if (vpage !== 1) {
               vpage = 1; screenPages(1);
-              ljnk(63, 1, 12, 4); PrintMessage(3, 0); DisplayCharacter();
+              ljnk(63, 1, 12, 4); PrintMessage(3, 0); await DisplayCharacter();
             }
             await Examine(FALSE);
             break;
@@ -364,7 +364,7 @@ async function AlphaMan(commandLine) {
                     localx = xenter; localy = yenter;
                     await DetailedMap(TRUE);
                     localx = xenter; localy = yenter;  // need this?
-                    DisplayCharacter();
+                    await DisplayCharacter();
                   } else {
                     didstuff = FALSE;   // go down stuff later on
                   }
@@ -388,13 +388,13 @@ async function AlphaMan(commandLine) {
             if (didstuff) { grabbed = 0; tentgrab = 0; }
             break;
           case 1059: case 49:   // F1,1
-            rdisp = 1; DisplayCharacter(); didstuff = FALSE;
+            rdisp = 1; await DisplayCharacter(); didstuff = FALSE;
             break;
           case 1060: case 50:   // F2
-            rdisp = 2; DisplayCharacter(); didstuff = FALSE;
+            rdisp = 2; await DisplayCharacter(); didstuff = FALSE;
             break;
           case 1061: case 51:   // F3
-            MakeKnownScreen();
+            await MakeKnownScreen();
             await PauseForKey();
             screenPages(vpage); didstuff = FALSE;
             break;
@@ -405,7 +405,7 @@ async function AlphaMan(commandLine) {
             break;
           case 1063: case 53:   // F5
             SetCombatStats();
-            vpage = 0; screenPages(0); ClearMess(); DisplayCharacter();
+            vpage = 0; screenPages(0); ClearMess(); await DisplayCharacter();
             for (let idum = 2; idum <= 51; idum++) {
               for (let jdum = 2; jdum <= 21; jdum++) {
                 if ((goodythere[idum][jdum] & 512)) {
@@ -425,12 +425,12 @@ async function AlphaMan(commandLine) {
             }
             vpage = 1; screenPages(1); ClearMess();
             ljnk(63, 1, 12, 4); PrintMessage(1, 0);
-            didstuff = FALSE; DisplayCharacter();
+            didstuff = FALSE; await DisplayCharacter();
             break;
           case 1064: case 54:   // F6
             vpage = 1; screenPages(1);
             ljnk(63, 1, 12, 4); PrintMessage(7, 0);
-            didstuff = FALSE; SetCombatStats(); DisplayCharacter();
+            didstuff = FALSE; SetCombatStats(); await DisplayCharacter();
             break;
           case 1065: case 55:   // F7
             didstuff = FALSE; MakeSymbolScreen();
@@ -969,7 +969,7 @@ async function Use() {
                 break;
               case 26:    // grenade launcher
                 if (goody[iuse][3] < 0) {
-                  await Throw(1); fatadd = 3; DisplayCharacter(); break ud3;
+                  await Throw(1); fatadd = 3; await DisplayCharacter(); break ud3;
                 } else {
                   rng = 60; fatadd = 1;
                   [num, dx, dy] = await Target(num, rng, dx, dy, wallcolr); ClearMess();
@@ -1123,9 +1123,9 @@ async function Use() {
                     }
                   }
                   if (detected) {
-                    vpage = 0; screenPages(0); DisplayCharacter();
+                    vpage = 0; screenPages(0); await DisplayCharacter();
                     ljnk(364, 1, 30, 2); await MessPause(12, 0);
-                    vpage = 1; screenPages(1); DisplayCharacter();
+                    vpage = 1; screenPages(1); await DisplayCharacter();
                   } else {
                     a = 364; b = 31; c = 34;
                   }
@@ -1891,6 +1891,6 @@ async function Use() {
     if (goody[iuse][3] > 0 && didstuff && deplete) goody[iuse][3] = goody[iuse][3] - 1;
   }
   // ud3:
-  fatig = Fatigu(); await HungFatEnc(); DisplayCharacter();
+  fatig = Fatigu(); await HungFatEnc(); await DisplayCharacter();
   if (not(didstuff)) keysave2 = FALSE;
 }

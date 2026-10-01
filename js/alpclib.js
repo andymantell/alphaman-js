@@ -155,6 +155,8 @@ function finddot(incastle) {
 }
 
 function rolldice(size, nroll, nuse) {
+  // QuickBasic passed these BYVAL AS INTEGER, rounding any fractions.
+  size = cint(size); nroll = cint(nroll); nuse = cint(nuse);
   const dice = new Array(50).fill(0);
   nroll = nroll > 50 ? 50 : nroll;
   nuse = nuse > nroll ? nroll : nuse;
@@ -569,7 +571,7 @@ function crandomize(seed) {
   cSrand(iseed);
 }
 
-function cRoll(max) { return max > 1 ? getrandom(1, max) : 1; }
+function cRoll(max) { max = cint(max); return max > 1 ? getrandom(1, max) : 1; }
 
 // Distance, rounded.
 function crd(x, y) {

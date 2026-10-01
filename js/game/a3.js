@@ -205,7 +205,7 @@ async function GotGrinch(beast) {
   ljnk(a, 1, c, 1); ljnk(d, 1, f, 2); l3 = ''; await MessPause(12, 0); ClearMess();
   if (beast) {
     expr = expr + grinchstole + 40000 + 6 * clng(10800 - gt);
-    [newlev, b$] = Level(newlev, b$); DisplayCharacter();
+    [newlev, b$] = await Level(newlev, b$); await DisplayCharacter();
     if (newlev) { ClearMess(); Ljnkbig(14, 26, 17, 0, 0, 0, str$(lvl), 1, 1); await MessPause(10, 0); }
     grinchstole = 0;
     extrapoints$ = ltrim$(str$(6 * clng(10800 - gt)));
@@ -222,7 +222,7 @@ async function GotGrinch(beast) {
       PrintMessage(14, 0);
     }
   } else {
-    expr = expr + 5000; ClearMess(); [newlev, b$] = Level(newlev, b$); DisplayCharacter();
+    expr = expr + 5000; ClearMess(); [newlev, b$] = await Level(newlev, b$); await DisplayCharacter();
     if (newlev) { Ljnkbig(14, 26, 17, 0, 0, 0, str$(lvl), 1, 1); await MessPause(10, 0); }
   }
   for (let i = nnear; i >= 1; i--) {
@@ -476,7 +476,7 @@ async function Move(num) {
         }
         await DetailedMap(FALSE);
         firstlocal = FALSE;
-        screenPages(1); vpage = 1; ClearMess(); DisplayCharacter();
+        screenPages(1); vpage = 1; ClearMess(); await DisplayCharacter();
         ljnk(59, 1, 13, 4); PrintMessage(7, 0); break mve;
       } else {
         didstuff = FALSE; ClearMess();
@@ -717,7 +717,7 @@ async function Move(num) {
           if (newx <= lwall || newx >= rwall || newy <= twall || newy >= bwall) {
             SaveMaps(-1); await LeaveCastle();
             newx = localx; newy = localy; dx = 0; dy = 0;
-            await DetailedMap(TRUE); DisplayCharacter();
+            await DetailedMap(TRUE); await DisplayCharacter();
           } else {
             if (dark === 0) {
               if (fc21 === wallcolr) { ddx = 0; ddy = dy; } else { ddy = 0; ddx = dx; }
@@ -952,7 +952,7 @@ async function Ride(num, dis) {
         }
         await DetailedMap(FALSE);
         firstlocal = FALSE;
-        screenPages(1); vpage = 1; ClearMess(); DisplayCharacter();
+        screenPages(1); vpage = 1; ClearMess(); await DisplayCharacter();
         ljnk(59, 1, 13, 4); PrintMessage(7, 0); continue nxrid;
       } else {
         ClearMess();
@@ -1095,9 +1095,9 @@ async function Teleport(tBer) {
               } while (nly > 21 || nly < 2);
             } while (nlx === mainx && nly === mainy);
             if (incastle) { await LeaveCastle(); incastle = 0; }
-            vpage = 0; screenPages(0); DisplayCharacter();
+            vpage = 0; screenPages(0); await DisplayCharacter();
           } else {
-            vpage = 0; screenPages(0); DisplayCharacter();
+            vpage = 0; screenPages(0); await DisplayCharacter();
             [lsym, nlx, nly, fc, bc] = await TargetLong(lsym, Math.fround(4 - 4 * qb(berhmmut > 0) - 100 * qb(tBer === -1)), nlx, nly, fc, bc);
             PutSym(lsym, nlx, nly, fc, bc, 0);
             if (nlx === mainx && nly === mainy) didstuff = FALSE;
@@ -1141,7 +1141,7 @@ async function Teleport(tBer) {
       case 15: case 42:
         dam = rolldice(8, lvl - 4 * qb(num === 15), lvl);
         if (tBer === -1) dam = cint(dam / 4);
-        hits = hits - dam; DisplayCharacter(); ljnk(63, 13, 33, 1);
+        hits = hits - dam; await DisplayCharacter(); ljnk(63, 13, 33, 1);
         if (hits < 0) { st1 = jnk$(63, 46, 23); await Dead(0); break ntpt; }
         PutSym(32, iq, jq, 7, 0, -1);
         break;
@@ -1166,7 +1166,7 @@ async function Teleport(tBer) {
         break;
       case 65:
         dam = rolldice(12, lvl + 2, lvl); if (tBer === -1) dam = cint(dam / 4);
-        hits = hits - dam; DisplayCharacter();
+        hits = hits - dam; await DisplayCharacter();
         if (hits < 0) {
           st1 = jnk$(63, 46, 17) + Der$(TRUE, cr, 3); await Dead(0); break ntpt;
         }
@@ -1196,7 +1196,7 @@ async function Teleport(tBer) {
             PutSym(32, iq, jq, 7, 0, 1); ljnk(48, 51, 18, 1);
             dam = 0; if (cl > 0) dam = rolldice(6 + lvl, cl + 1, cl);
             if (dam > 0) {
-              ljnk(52, 55, 14, 2); hits = hits - dam; DisplayCharacter();
+              ljnk(52, 55, 14, 2); hits = hits - dam; await DisplayCharacter();
               if (hits < 0) { st1 = jnk$(50, 57, 10); await Dead(0); break ntpt; }
             }
           } else {
@@ -1230,7 +1230,7 @@ async function Teleport(tBer) {
   }
   // ntpt:
   vpage = vpagesave; screenPages(vpage);
-  if (not(bitit)) DisplayCharacter();
+  if (not(bitit)) await DisplayCharacter();
   PrintMessage(3, 0); fatadd = 30;
 }
 
@@ -1735,7 +1735,7 @@ async function UseMono() {
             hunger = hunger - 300; knownb[goody[1][3]] = TRUE;
             gdy[1] = a$; for (let j = 1; j <= 12; j++) goody[1][j] = scratch[j + 10];
             if (temp < 0) Scatter(0);
-            await MessPause(12, 0); DisplayCharacter(); PrintMessage(7, 0);
+            await MessPause(12, 0); await DisplayCharacter(); PrintMessage(7, 0);
           }
         } else {
           Printjnk(326, 1, 40); fc = 10; row = 25; colm = 5;
@@ -1810,7 +1810,7 @@ async function UseMono() {
             } else {
               lsdknown[-scratch[b]] = TRUE; DetermineLsd(-scratch[b]);
             }
-            PrintMessage(7, 0); DisplayCharacter();
+            PrintMessage(7, 0); await DisplayCharacter();
           }
         } else {
           Printjnk(326, 1, 15); print('  '); Printjnk(323, 47, 22);
@@ -2028,6 +2028,6 @@ async function UseMono() {
     monozone[localmononum][3] = numused;
   }
   // exum:
-  didstuff = FALSE; DisplayCharacter();
+  didstuff = FALSE; await DisplayCharacter();
   screenPages(vpage);
 }

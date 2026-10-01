@@ -175,7 +175,11 @@ let ncre, scratch, localgoody, goodythere, goodycastle;
 let knownb, berry$, berord, ssd, ssdtyp, ssdknown, lsd, lsdtyp, lsdknown;
 let radzone, savcrn, monozone, xstairs, ystairs, pag2, lsave;
 
+// STATIC variable of KillCreat (A4).
+let firstspecial = 0;
+
 function resetState() {
+  firstspecial = 0;
   for (const [n, type] of Object.entries(QB_GLOBALS)) {
     globalThis[n] = type === 'str' ? '' : type === 'fixed54' ? '' : 0;
   }

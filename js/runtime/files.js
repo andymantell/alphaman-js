@@ -11,6 +11,9 @@ const DosFS = {
 
   rom: {},            // read-only files shipped with the game (ALPHAMAN.5)
 
+  listeners: [],      // called with the file name after every write / remove
+  changed(name) { for (const f of this.listeners) f(this.normalize(name)); },
+
   // DOS file names: case-insensitive, trailing blanks ignored, 8.3 truncation.
   normalize(name) {
     let n = name.trim().toUpperCase();
@@ -45,6 +48,7 @@ const DosFS = {
     try { localStorage.setItem(this.key(name), s); } catch (e) {
       console.warn('localStorage write failed for', name, e);
     }
+    this.changed(name);
   },
 
   exists(name) { return this.read(name) !== null; },
@@ -52,6 +56,7 @@ const DosFS = {
   remove(name) {
     this.mem.delete(this.key(name));
     try { localStorage.removeItem(this.key(name)); } catch (e) { /* ignore */ }
+    this.changed(name);
   },
 
   list() {

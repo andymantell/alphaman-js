@@ -534,6 +534,7 @@ async function Compute(mainp) {
           }
           row = 3; color(1 + 1); ccls(3);
           for (j = 1; j <= nselext; j++) {
+            if (scratch[j + 20] < 1) scratch[j + 20] = 1;   // CreatNam$ changes its BYREF typ
             locate(row, 15); println(str$(j) + bl + CreatNam$(scratch[j + 20], 1));
             row = row + 1;
           }
@@ -1535,7 +1536,7 @@ async function UseMutat(i) {
     }
   }
   // umt:
-  DisplayCharacter();
+  await DisplayCharacter();
   if (c > 0) { ljnk(a, b, c, 2); fc = await MessPause(fc, 0); }
   return i;
 }

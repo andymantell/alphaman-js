@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AlphaMan</title>
+<meta name="description" content="AlphaMan (1995), the DOS roguelike by Jeffrey R. Olson, ported to the browser.">
+<style>
+  :root {
+    --bg: #101014;
+    --panel: #1b1b22;
+    --text: #d7d7df;
+    --muted: #8b8b99;
+    --accent: #55ffff;
+    --danger: #ff6b6b;
+    --border: #2e2e3a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 16px;
+    background: var(--bg); color: var(--text);
+    font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+    display: flex; flex-direction: column; align-items: center; gap: 16px;
+  }
+  #game { width: 100%; max-width: 1080px; }
+  #screen {
+    display: block; width: 100%; height: auto;
+    image-rendering: pixelated; background: #000;
+    border: 1px solid var(--border);
+  }
+  #status { min-height: 1.45em; margin: 8px 0 0; color: var(--accent); }
+  #saves {
+    width: 100%; max-width: 1080px;
+    background: var(--panel); border: 1px solid var(--border); border-radius: 6px;
+    padding: 12px 16px;
+  }
+  #saves h2 { font-size: 16px; margin: 0 0 8px; }
+  #save-list { list-style: none; margin: 0 0 12px; padding: 0; }
+  #save-list li {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    padding: 6px 0; border-bottom: 1px solid var(--border);
+  }
+  #save-list li.empty { color: var(--muted); }
+  .save-name { font-family: ui-monospace, Consolas, monospace; font-weight: 600; min-width: 9ch; }
+  .save-info { color: var(--muted); flex: 1; }
+  button, label.button {
+    font: inherit; color: var(--text); background: #2a2a36;
+    border: 1px solid var(--border); border-radius: 4px; padding: 4px 12px; cursor: pointer;
+  }
+  button:hover, label.button:hover { border-color: var(--accent); }
+  button:disabled { opacity: 0.5; cursor: default; }
+  button.danger:hover { border-color: var(--danger); color: var(--danger); }
+  #save-upload { position: absolute; left: -9999px; }
+  #save-message { color: var(--muted); margin: 8px 0 0; min-height: 1.45em; }
+  footer { max-width: 1080px; color: var(--muted); font-size: 13px; }
+  footer a { color: var(--accent); }
+</style>
+</head>
+<body>
+<main id="game">
+  <canvas id="screen" width="720" height="400" aria-label="AlphaMan game screen"></canvas>
+  <p id="status" role="status"></p>
+</main>
+
+<section id="saves" aria-labelledby="saves-title">
+  <h2 id="saves-title">Saved games</h2>
+  <ul id="save-list"></ul>
+  <label class="button" for="save-upload">Upload saved game…</label>
+  <input id="save-upload" type="file" accept=".zip,.alf,.sav" multiple>
+  <p id="save-message" role="status"></p>
+</section>
+
+<footer>
+  AlphaMan &copy; 1995 Jeffrey R. Olson (MIT licence). Browser port of the
+  original QuickBasic and C source. Saved games are kept in this browser; download
+  them to keep a copy. Font: VGA 9&times;16 from pcface (CC BY-SA 4.0).
+</footer>
+
+<script src="js/data.js"></script>
+<script src="js/runtime/font.js"></script>
+<script src="js/runtime/qb.js"></script>
+<script src="js/runtime/screen.js"></script>
+<script src="js/runtime/keyboard.js"></script>
+<script src="js/runtime/files.js"></script>
+<script src="js/runtime/io.js"></script>
+<script src="js/alpclib.js"></script>
+<script src="js/game/state.js"></script>
+<script src="js/game/a1.js"></script>
+<script src="js/game/a2.js"></script>
+<script src="js/game/a3.js"></script>
+<script src="js/game/a4.js"></script>
+<script src="js/game/a5.js"></script>
+<script src="js/game/a6.js"></script>
+<script src="js/game/a7.js"></script>
+<script src="js/game/a8.js"></script>
+<script src="js/savepanel.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

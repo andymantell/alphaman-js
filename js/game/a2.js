@@ -279,7 +279,7 @@ async function CreatAttack(inew, damage) {
   damage = 0; touch = FALSE;
   typ = ncre[i][1]; cx = ncre[i][4]; cy = ncre[i][5];
 
-  const damarmor = () => {
+  const damarmor = async () => {
     num = 0;
     for (let k = 1; k <= ngoody; k++) {
       if (goody[k][1] === -4) num = k;
@@ -299,14 +299,14 @@ async function CreatAttack(inew, damage) {
         l1 = l2; ljnk(123, 13, 33, 2); c = 0; cc = 0;
         inew = 0;   // so creatdo won't change l2 or l1
       } else {
-        armor = narm; RemoveGoody(num, FALSE); SetCombatStats(); DisplayCharacter();
+        armor = narm; RemoveGoody(num, FALSE); SetCombatStats(); await DisplayCharacter();
       }
     } else {
       Ljnkbig(93, 13, 14, 93, 36, 7, bl, 2, 2);
     }
     f = 0;
   };
-  const damshield = () => {
+  const damshield = async () => {
     num = 0;
     for (let k = 1; k <= ngoody; k++) {
       if (goody[k][1] === -5) num = k;
@@ -326,7 +326,7 @@ async function CreatAttack(inew, damage) {
         l1 = l2; ljnk(123, 13, 33, 2); c = 0; cc = 0;
         inew = 0;   // so creatdo won't change l2 or l1
       } else {
-        shield = nsh; RemoveGoody(num, FALSE); SetCombatStats(); DisplayCharacter();
+        shield = nsh; RemoveGoody(num, FALSE); SetCombatStats(); await DisplayCharacter();
       }
     } else {
       ljnk(315, 1, 22, 2);
@@ -403,7 +403,7 @@ async function CreatAttack(inew, damage) {
       switch (atype) {
         case 1:  // kinetic
           siz = 6; if (astr === 0) { astr = 1; siz = 3; }
-          dam = rolldice(siz, astr, astr); dam = DamSuit(0, dam);
+          dam = rolldice(siz, astr, astr); dam = await DamSuit(0, dam);
           if (pmut === 5 && berpmut === 0) dam = cint(dam * (0.75 + 0.25 * qb(berhpmut > 0)));
           if (damage !== 0) { a = 53; b = 11; c = 20; } else { a = 53; b = 1; c = 10; }
           damage = damage + dam;
@@ -414,7 +414,7 @@ async function CreatAttack(inew, damage) {
           siz = 5; if (astr === 0) { astr = 1; siz = 3; }
           dam = rolldice(siz, astr, astr);
           if (rr > 1) dam = cint(dam * 12 / (rr + 1)); else dam = dam * 5;
-          dam = DamSuit(1, dam);
+          dam = await DamSuit(1, dam);
           if ((pmut === 8 && berpmut === 0)) dam = cint(dam * (0.75 + 0.25 * qb(berhpmut > 0)));
           if (dam < 1) dam = 1;
           damage = damage + dam; a = 54; b = 1; c = 15;
@@ -428,7 +428,7 @@ async function CreatAttack(inew, damage) {
           if (cRoll(50) <= astr) {
             if (!(pmut === 7 && berpmut === 0 && cRoll(5) > 1)) {
               dex = dex - 1; if (rnd() < 0.9) dextox = dextox + 1;
-              if (rdisp === 1) DisplayCharacter();
+              if (rdisp === 1) await DisplayCharacter();
             }
           }
           if (attackrange === 1) touch = TRUE;
@@ -442,7 +442,7 @@ async function CreatAttack(inew, damage) {
           if (cRoll(10) <= astr) {
             if (!(pmut === 7 && berpmut === 0 && cRoll(5) > 1)) {
               str = str - 1; if (rnd() < 0.9) strtox = strtox + 1;
-              if (rdisp === 1) DisplayCharacter();
+              if (rdisp === 1) await DisplayCharacter();
             }
           }
           SetCombatStats();
@@ -455,7 +455,7 @@ async function CreatAttack(inew, damage) {
               damg = cRoll(idiv(lvl + astr, 2)); hitmax = hitmax - damg;
               if (cRoll(10) !== 1) hittox = hittox + damg;
               con = con - 1; if (rnd() < 0.9) contox = contox + 1;
-              if (rdisp === 1) DisplayCharacter();
+              if (rdisp === 1) await DisplayCharacter();
             }
           } else if (cRoll(3) === 1 && !(pmut === 7 && berpmut === 0 && cRoll(5) > 1)) {
             damg = idiv(astr, 3) + 1; hitmax = hitmax - damg; hittox = hittox + damg;
@@ -468,7 +468,7 @@ async function CreatAttack(inew, damage) {
           break;
         case 6:  // acid
           siz = 6; if (astr === 0) { astr = 1; siz = 3; }
-          dam = rolldice(siz, astr, astr); dam = DamSuit(5, dam);
+          dam = rolldice(siz, astr, astr); dam = await DamSuit(5, dam);
           damage = damage + dam; a = 54; b = 41; c = 28;
           if (attackrange === 1 && pmut === 1) touch = TRUE;
           break;
@@ -488,7 +488,7 @@ async function CreatAttack(inew, damage) {
             }
             damage = -1;
           } else {
-            dam = DamSuit(3, dam); damage = damage + dam;
+            dam = await DamSuit(3, dam); damage = damage + dam;
           }
           break;
         case 8:  // mental
@@ -505,14 +505,14 @@ async function CreatAttack(inew, damage) {
           if (attackrange === 1 || pmut === 1) touch = TRUE;
           dam = rolldice(siz, astr, astr);
           if (pmut === 1 && berpmut === 0) dam = cint(dam * (0.5 + 0.5 * qb(berhpmut > 0)));
-          dam = DamSuit(4, dam); damage = damage + dam;
+          dam = await DamSuit(4, dam); damage = damage + dam;
           a = 55; b = 44; c = 12;
           break;
         case 10:  // heat
           siz = 5; if (astr === 0) { astr = 1; siz = 3; }
           dam = rolldice(siz, astr, astr);
           if ((pmut === 8 && berpmut === 0)) dam = cint(dam * (0.67 + 0.33 * qb(berhpmut > 0)));
-          dam = DamSuit(2, dam); damage = damage + dam;
+          dam = await DamSuit(2, dam); damage = damage + dam;
           a = 55; b = 56; c = 10;
           if (attackrange === 1 && pmut === 1) touch = TRUE;
           break;
@@ -520,7 +520,7 @@ async function CreatAttack(inew, damage) {
           siz = 7; if (astr === 0) { astr = 1; siz = 3; }
           dam = rolldice(siz, astr, astr);
           if (brandy > 0 && dam > 1) dam = dam - 1;
-          dam = DamSuit(2, dam); damage = damage + dam;
+          dam = await DamSuit(2, dam); damage = damage + dam;
           a = 56; b = 1; c = 12;
           if (attackrange === 1 && pmut === 1) touch = TRUE;
           break;
@@ -579,7 +579,7 @@ async function CreatAttack(inew, damage) {
             damage = -1;
             if (typ === gill) remchance = 0;
             if (cRoll(100) < remchance && i !== tentgrab) ncre[i][2] = -2000;  // removecreat
-            DisplayCharacter();
+            await DisplayCharacter();
             if (fastfight) await MessPause(12, 0);
           } else {
             a = 53; b = 1; c = 10; siz = lvl; numd = 1;
@@ -601,8 +601,8 @@ async function CreatAttack(inew, damage) {
             zz = cRoll(105 - 5 * k); if (zzz > zz) zzz = zz;
           }
           aa = 55; bb = 2; cc = 7;
-          if (zzz < 13) damarmor();
-          else if (zzz < 40) damshield();
+          if (zzz < 13) await damarmor();
+          else if (zzz < 40) await damshield();
           break;
         case 17:   // pooped
           aa = 55; bb = 2; cc = 7; d = 219; e = 22; f = 18; damage = -1;
@@ -682,7 +682,7 @@ async function CreatAttack(inew, damage) {
             lose = clng((expr * rnd() * 0.05 + 2) * astr);
             expr = expr - lose;
             if (typ === grinch) grinchstole = grinchstole + lose;
-            [newlev, b$] = Level(newlev, b$); DisplayCharacter();
+            [newlev, b$] = await Level(newlev, b$); await DisplayCharacter();
             if (newlev) {
               Ljnkbig(aa, bb, cc, 0, 0, 0, Der$(FALSE, i, 2) + bl, 0, 1);
               l2 = b$; await MaybeMessPause(13, 0); cc = 0; f = 0;
@@ -690,7 +690,7 @@ async function CreatAttack(inew, damage) {
             }
           }
           SetCombatStats();
-          DisplayCharacter();
+          await DisplayCharacter();
           break;
         case 22:   // blind
           damage = -1; aa = 249; bb = 34; cc = 11;
@@ -736,12 +736,12 @@ async function CreatAttack(inew, damage) {
               dam = rolldice(cint(lvl / 2), 3, 3);
               switch (cRoll(5)) {
                 case 1: case 2:    // acid
-                  dam = DamSuit(5, dam); a = 112; b = 39; c = 27; break;
+                  dam = await DamSuit(5, dam); a = 112; b = 39; c = 27; break;
                 case 3: case 4:    // electrical
-                  dam = DamSuit(4, dam); a = 113; b = 17; c = 35; break;
+                  dam = await DamSuit(4, dam); a = 113; b = 17; c = 35; break;
                 default:           // flashpowder
                   if ((pmut === 8 && berpmut === 0)) dam = cint(dam * (0.67 + 0.33 * qb(berhpmut > 0)));
-                  dam = DamSuit(2, dam); a = 115; b = 7; c = 36;
+                  dam = await DamSuit(2, dam); a = 115; b = 7; c = 36;
                   berblind = berblind + 5;
                   [dark, olddark, changed] = SetDark(dark, olddark, changed); if (changed) ChangeDark();
               }
@@ -768,7 +768,7 @@ async function CreatAttack(inew, damage) {
               touch = TRUE; damage = damage + dam; a = 151; b = 41; c = 12;
               break;
             case gramp:
-              a = 382; b = 32; c = 32; d = 383; e = 1; f = 48; Mousify();
+              a = 382; b = 32; c = 32; d = 383; e = 1; f = 48; await Mousify();
               break;
             case elvis: case elvimp:
               dam = rolldice(lvl, 2, 2);
@@ -813,10 +813,10 @@ async function CreatAttack(inew, damage) {
           zzz = cRoll(75);
           if (zzz === 1 && j === 6) {
             ClearMess();
-            damarmor(); if (num === 0) continue nxcreatk;
+            await damarmor(); if (num === 0) continue nxcreatk;
           } else if (zzz === 2 && j === 6) {
             ClearMess();
-            damshield(); if (num === 0) continue nxcreatk;
+            await damshield(); if (num === 0) continue nxcreatk;
           }
           break;
       }
@@ -1090,7 +1090,7 @@ async function CreatDo() {
         }
         if (typ === pryor && cRoll(8) === 1) {
           ljnk(87, 30, 22, 1); ncre[i][2] = -1000;  // remove him
-          dam = rolldice(lvl, 4, 4); dam = DamSuit(2, dam);
+          dam = rolldice(lvl, 4, 4); dam = await DamSuit(2, dam);
           [dam, ffkill] = ffEffect(dam, ffkill);
           if (ffkill) {
             await MessPause(4, 0); ClearMess();
@@ -1372,7 +1372,7 @@ async function DrawCaves() {
   let maxcritter = 0, maxinrms = 0, x = 0, y = 0, sym = 0, fc = 0, bc = 0, ci = 0;
   numrms = Cave(numrms, rms);
 
-  t$ = Terr$(terrain); DisplayCharacter(); PrintMessage(15, 0);
+  t$ = Terr$(terrain); await DisplayCharacter(); PrintMessage(15, 0);
 
   [xstair, ystair] = finddot(incastle); localx = xstair; localy = ystair;
   currsym = 240; currf = 13; currb = 0;
@@ -1445,7 +1445,7 @@ async function DrawCaves() {
   }
 
   screenPages(1); vpage = 1; ChangeDark();
-  PrintMessage(5, 0); DisplayCharacter();
+  PrintMessage(5, 0); await DisplayCharacter();
 }
 
 // Draws (or reloads) the current castle level.
@@ -1461,7 +1461,7 @@ async function DrawDungeon() {
 
   if (sunglasses) dark = -1;
 
-  if ((LoadMaps(-1) === 0)) {
+  if ((await LoadMaps(-1) === 0)) {
     // ----------------------------------------------
 
     if (lwall > rwall) { t = lwall; lwall = rwall; rwall = t; }
@@ -1483,7 +1483,7 @@ async function DrawDungeon() {
     }
     ndropped = ndro;
 
-    screenPages(1); vpage = 1; ccls(1); PrintMessage(7, 0); DisplayCharacter();
+    screenPages(1); vpage = 1; ccls(1); PrintMessage(7, 0); await DisplayCharacter();
     box(lwall, rwall, twall, bwall, 2, wallcolr, 1);
     screenPages(2, 1); clpage2();
     box(lwall, rwall, twall, bwall, 2, wallcolr, 2);
@@ -1616,7 +1616,7 @@ async function DrawDungeon() {
     if (invisible) ffc = 8; else ffc = 15;
     PutSym(1, localx, localy, ffc, 0, 2);
     dots = dots - 1; t$ = Terr$(terrain);
-    PrintMessage(7, 0); DisplayCharacter();
+    PrintMessage(7, 0); await DisplayCharacter();
 
     nadd = cint(dots * (rnd() + 0.5) * (rnd() + 0.5) / 70 + Math.abs(cl));
     g = goodycastle[castle][cl];
@@ -1864,7 +1864,7 @@ async function DrawLair() {
   if (sunglasses) dark = -1;
   incastle = 1;
 
-  if (LoadMaps(1) === 0) {
+  if (await LoadMaps(1) === 0) {
     // ----------------------------------------------
     nnear = 0; castle = 0; castlelevel = 0; dark = 1;
     lwall = 2; rwall = 51; twall = 2; bwall = 21;
@@ -1885,7 +1885,7 @@ async function DrawLair() {
     if (cRoll(2) === 1) { await DrawCaves(); return; }
 
     ({ xr, xl, yb, yt, xs: xstair, ys: ystair } = lair());
-    t$ = Terr$(terrain); DisplayCharacter(); PrintMessage(15, 0);
+    t$ = Terr$(terrain); await DisplayCharacter(); PrintMessage(15, 0);
 
     localx = xstair; localy = ystair;
     currsym = 240; currf = 13; currb = 0;
@@ -1957,7 +1957,7 @@ async function DrawLair() {
     // ----------------------------------------------
   }
 
-  screenPages(1); vpage = 1; ChangeDark(); PrintMessage(5, 0); DisplayCharacter();
+  screenPages(1); vpage = 1; ChangeDark(); PrintMessage(5, 0); await DisplayCharacter();
 }
 
 // Draws a special castle level from ALPHAMAN.4.  Returns special (the BASIC
@@ -2071,7 +2071,7 @@ function LairCreat(strength) {
 }
 
 // Grandpa Munster turns you into a mouse and scatters your belongings.
-function Mousify() {
+async function Mousify() {
   let numbr = 0, nitems = 0, x = 0, y = 0, j = 0, sym = 0, fc = 0, bc = 0, ffc = 0;
   const oldar = 0;   // (sic) undeclared variable
   PutSym(currsym, localx, localy, currf, currb, -1);   // erase old sym
@@ -2119,7 +2119,7 @@ function Mousify() {
   }
 
   SetCombatStats();
-  DisplayCharacter();
+  await DisplayCharacter();
   if (dark) dark = oldar;
   ChangeDark();
   if (invisible) ffc = 8; else ffc = 15;
@@ -2187,7 +2187,7 @@ function Scatter(pak) {
       if (gtyp === 1) { currsym = 22; currf = 5; } else { currsym = 254; currf = 6; }
       gnum = gnum - 1;
       if (gnum === 0) {
-        pak = RemoveGoody(j, pak);
+        RemoveGoody(j, pak);
       } else {
         switch (pak) {
           case 0: goody[j][3] = gnum; break;
@@ -2196,7 +2196,7 @@ function Scatter(pak) {
         }
       }
     } else {
-      AddToDrop((j + addl)); pak = RemoveGoody(j, pak);
+      AddToDrop((j + addl)); RemoveGoody(j, pak);
     }
     drgoody[1][15] = localx; drgoody[1][16] = localy;
     sc = -1;

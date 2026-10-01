@@ -281,6 +281,7 @@ function Der$(kil, num, i) {
       if (t > ncreat + creextra + 1) break;   // +1 for webspid
       switch (i) {
         case 3: {
+          if (ncre[num][1] < 1) ncre[num][1] = 1;   // CreatNam$ changes its BYREF typ
           let a$ = ltrim$(CreatNam$(ncre[num][1], num));
           a$ = ucase$(left$(a$, 1));
           if (a$ === 'A' || a$ === 'E' || a$ === 'I' || a$ === 'O' || a$ === 'U') d$ = 'an ';
@@ -291,6 +292,7 @@ function Der$(kil, num, i) {
         default: d$ = 'the ';
       }
   }
+  if (ncre[num][1] < 1) ncre[num][1] = 1;   // CreatNam$ changes its BYREF typ
   d$ = d$ + CreatNam$(ncre[num][1], num);
   if (not(kil)) {
     const [sym] = GetSym(ncre[num][4] + localx, ncre[num][5] + localy, 1);
@@ -312,6 +314,7 @@ function DisplayCritter(ttyp) {
   let row = 0, botrow = 0, tohit = 0, astr = 0, rng = 0, atyp = 0, asiz = 0, a = 0, b = 0, c = 0, znum = 0;
   if (typ < 0) { realcrit = TRUE; num = -typ; typ = ncre[num][1]; }
   ccls(3); color(15); locate(3, 5);
+  if (typ < 1) typ = 1;   // CreatNam$ changes its BYREF typ
   print(CreatNam$(typ, 1), space$(4));
   if (realcrit) fb = ncre[num][7]; else fb = Creature(typ, 3);
   if (idiv(fb, 1000) === 0) bc = 1; else bc = 0;
@@ -535,7 +538,7 @@ async function Examine(tric) {
       case '?': await Help(5); return;
       case 'I':   // item
         ljnk(257, 49, 13, 1); i = 0; i = await SelectGoody(i, 7, FALSE);
-        if (i < 1) { DisplayCharacter(); PrintMessage(7, 0); break exam; }
+        if (i < 1) { await DisplayCharacter(); PrintMessage(7, 0); break exam; }
         if (berconfuse) i = cRoll(ngoody);
         switch (Math.abs(goody[i][1])) {
           case 1: ljnk(258, 25, 20, 2); break;
@@ -562,10 +565,10 @@ async function Examine(tric) {
           case 7: case 8:
             if (goody[i][10]) {
               if (goody[i][11] === 2 && Math.abs(goody[i][1]) === 7) {
-                DisplayGoodies(1); ClearMess(); await MessPause(14, 0); DisplayCharacter();
+                DisplayGoodies(1); ClearMess(); await MessPause(14, 0); await DisplayCharacter();
                 break exam;
               } else if (goody[i][11] === 8 && Math.abs(goody[i][1]) === 8) {
-                DisplayGoodies(2); ClearMess(); await MessPause(14, 0); DisplayCharacter();
+                DisplayGoodies(2); ClearMess(); await MessPause(14, 0); await DisplayCharacter();
                 break exam;
               } else {
                 c$ = jnk$(10, 61, 5) + gdy[i];
@@ -612,14 +615,14 @@ async function Examine(tric) {
           default:
             l2 = jnk$(261, 18, 17) + gdy[i];
         }
-        fatadd = 1; DisplayCharacter();
+        fatadd = 1; await DisplayCharacter();
         break;
       case 'S':  // screen square
         [num, dx, dy] = await Target(num, 60, dx, dy, wallcolr * (1 + tric)); ClearMess();
         c$ = jnk$(261, 35, 7); d$ = c$ + 'a '; num = -num;
         a = 0; b = 0; c = 0; d = 0; e = 0; f = 0; g = 0; h = 0; i = 0;
         switch (true) {
-          case num === 0: DisplayCharacter(); break exam;
+          case num === 0: await DisplayCharacter(); break exam;
           case num < 0:
             if (tric) {
               screenPages(3); DisplayCritter(num); await PauseForKey();
@@ -733,7 +736,7 @@ async function Examine(tric) {
           case num === lockeddoor: d = 268; e = 24; f = 11; break;
         }
         break;
-      case chr$(27): ClearMess(); DisplayCharacter(); break exam;
+      case chr$(27): ClearMess(); await DisplayCharacter(); break exam;
       default: continue exam;
     }
     if (c > 0) {
@@ -945,7 +948,6 @@ async function Initialize() {
     }
   }
   if (!(gotna && gotsy && gotco)) {
-    qbClose(2);
     await define();
   } else {
     if (ltrim$(rtrim$(wimpname$)) === '') wimpname$ = 'Wolverine';
@@ -1243,7 +1245,7 @@ function mapFileName(mode) {
   return 'deleteme.' + fixstr(ending, 3);
 }
 
-function LoadMaps(mode) {
+async function LoadMaps(mode) {
   // loads current stuff (critters, dropped items) for later retrieval
   // mode=0  is loading outdoor stuff                (deleteme.0)
   // mode=1  is loading a lair                       (deleteme.-1)
@@ -1310,7 +1312,7 @@ function LoadMaps(mode) {
   qbClose(2);
 
   ljnk(63, 1, 12, 4); PrintMessage(7, 0);   // set terrain string
-  DisplayCharacter();
+  await DisplayCharacter();
 
   if (mode === 0) { box(1, 52, 1, 22, 1, 4, 1); box(1, 52, 1, 22, 1, 4, 2); }
 
@@ -1319,7 +1321,7 @@ function LoadMaps(mode) {
 
 async function MaybeMessPause(fc, bc) {
   if (fastfight) { l3 = bl; PrintMessage(fc, bc); return fc; }
-  return MessPause(fc, bc);
+  return await MessPause(fc, bc);
 }
 
 // Shows the message lines and waits for space or Esc.  Returns the (possibly

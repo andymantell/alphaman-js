@@ -68,7 +68,10 @@ class TextScreen {
 
   // ------------------------------------------------------ direct memory
   getCell(page, x, y) {           // x, y 1-based
-    return this.pages[page][(y - 1) * SCREEN_COLS + (x - 1)];
+    // Like the original's direct video memory reads, x is not range checked
+    // within a row; reads outside the page return 0.
+    const i = (y - 1) * SCREEN_COLS + (x - 1);
+    return i < 0 || i >= PAGE_CELLS ? 0 : this.pages[page][i];
   }
   setCell(page, x, y, value) {
     const i = (y - 1) * SCREEN_COLS + (x - 1);
