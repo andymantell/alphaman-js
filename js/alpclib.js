@@ -553,8 +553,9 @@ function isqrt(num) {
 
 function cgetsym(x, y, pag) {
   if (pag === 2) {
-    const r = GetSym(x, y, pag);
-    return i16(((r.fc + r.bc * 16) << 8) + r.sym);
+    // The C code asks the BASIC GetSym for page 2 (the pag2 array).
+    const [sym, fc, bc] = GetSym(x, y, pag);
+    return i16(((fc + bc * 16) << 8) + sym);
   }
   return i16(SCR.getCell(pag, x, y));
 }
