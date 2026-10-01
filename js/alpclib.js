@@ -83,7 +83,7 @@ function drawtunnel(x, y, dx, dy) {
     drawtunnel(x, y, dx3, dy3);
   }
 
-  if ((maxnested < nested) && (croll(2) === 2)) {
+  if ((maxnested < nested) && (cRoll(2) === 2)) {
     maxnested = nested; xstair = x; ystair = y;
   }
   nested--;
@@ -105,7 +105,7 @@ function lair() {
   for (let i = 0; i < 10; i++) {
     let x = getrandom(xl + 1, xr - 1), y = getrandom(yt + 1, yb - 1);
     let dx = 0, dy = 0;
-    switch (croll(4)) {
+    switch (cRoll(4)) {
       case 1: x = xl - 1; dx = -1; break;
       case 2: x = xr + 1; dx = 1; break;
       case 3: y = yt - 1; dy = -1; break;
@@ -128,7 +128,7 @@ function walldist(x, y, dx, dy, max, incastle) {
       const sym1 = cgetsym(x + dy, y + dx, 2) % 256;
       const sym2 = cgetsym(x - dy, y - dx, 2) % 256;
       if ((sym !== 219) || (sym1 !== 219) || (sym2 !== 219)) {
-        if (croll(40) !== 1) { dist = k - 1; k = max + 1; }
+        if (cRoll(40) !== 1) { dist = k - 1; k = max + 1; }
       }
     } else {
       const sym = cgetsym(x + dx * k, y + dy * k, 2) % 256;
@@ -333,7 +333,7 @@ function cmainmap(irnd, jrnd) {
       x = f(j * 10 - 230 + b);
       csx = f(Math.cos(x / 200));
       z = i16(Math.trunc(100 * (csx * csx + csy * csy) + x * y / (3500 + c)));
-      z1 = i16(z + croll(10) - croll(10));
+      z1 = i16(z + cRoll(10) - cRoll(10));
       if (z < 58) {
         cputsym(247, j + jrnd * (53 - 2 * j), i + irnd * (23 - 2 * i), 1 + 8 * (getrandom(1, 2) === 1 ? 1 : 0), 0, 0);
       } else if (z1 < 78) {
@@ -569,7 +569,7 @@ function crandomize(seed) {
   cSrand(iseed);
 }
 
-function croll(max) { return max > 1 ? getrandom(1, max) : 1; }
+function cRoll(max) { return max > 1 ? getrandom(1, max) : 1; }
 
 // Distance, rounded.
 function crd(x, y) {
@@ -592,8 +592,8 @@ function cfinddxdy(x, y, n) {
   let mult = i16(3 * p);
   if (mult < 100) mult = 100;
   const rx = getrandom(1, i16(10 * mult)), ry = getrandom(1, i16(10 * mult));
-  let dx = -sgn(x); if (Math.abs(x) === 1 && croll(4) === 1) dx = 0;
-  let dy = -sgn(y); if (Math.abs(y) === 1 && croll(4) === 1) dy = 0;
+  let dx = -sgn(x); if (Math.abs(x) === 1 && cRoll(4) === 1) dx = 0;
+  let dy = -sgn(y); if (Math.abs(y) === 1 && cRoll(4) === 1) dy = 0;
   switch (dx) {
     case -1: case 1:
       if (rx < p) dx = -dx;
