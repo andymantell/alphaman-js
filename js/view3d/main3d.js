@@ -174,6 +174,7 @@ const view = {
   player: new THREE.Vector3(),
   active() { return this.on && overlayShown; },
   relative() { return this.scene === 'local' && this.camera !== 'table'; },
+  walking() { return this.scene === 'local'; },
   turn(d) { this.heading = (this.heading + d + 8) % 8; },
   toggle() { setOn(!this.on); },
   cycleCamera() {
@@ -407,7 +408,7 @@ function setCamera(c) {
 function updateHint() {
   hint.textContent = !view.on ? '' : view.camera === 'table'
     ? 'Shift+F8 changes camera'
-    : 'Up/Down move, Left/Right turn, keypad 4/6 step sideways · Shift+F8 changes camera';
+    : 'Up/Down walk, Left/Right turn (also while walking), keypad 4/6 step sideways · Shift+F8 changes camera';
 }
 canvas.style.display = 'none';
 setCamera(view.camera);
