@@ -23,11 +23,23 @@
     display: flex; flex-direction: column; align-items: center; gap: 16px;
   }
   #game { width: 100%; max-width: 1080px; }
+  #viewport { position: relative; border: 1px solid var(--border); background: #000; }
   #screen {
     display: block; width: 100%; height: auto;
     image-rendering: pixelated; background: #000;
-    border: 1px solid var(--border);
   }
+  /* The 3D view covers the map: columns 1-52 and rows 1-22 of 80 x 25. */
+  #screen3d {
+    position: absolute; left: 0; top: 0;
+    width: calc(100% * 52 / 80); height: calc(100% * 22 / 25);
+    display: none;
+  }
+  #view3d-controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+  #view3d-controls select {
+    font: inherit; color: var(--text); background: #2a2a36;
+    border: 1px solid var(--border); border-radius: 4px; padding: 3px 6px;
+  }
+  #view3d-controls .hint { color: var(--muted); font-size: 13px; }
   #status { min-height: 1.45em; margin: 8px 0 0; color: var(--accent); }
   #saves {
     width: 100%; max-width: 1080px;
@@ -58,7 +70,10 @@
 </head>
 <body>
 <main id="game">
-  <canvas id="screen" width="720" height="400" aria-label="AlphaMan game screen"></canvas>
+  <div id="viewport">
+    <canvas id="screen" width="720" height="400" aria-label="AlphaMan game screen"></canvas>
+  </div>
+  <div id="view3d-controls"></div>
   <p id="status" role="status"></p>
 </main>
 
@@ -95,5 +110,17 @@
 <script src="js/game/a8.js"></script>
 <script src="js/savepanel.js"></script>
 <script src="js/main.js"></script>
+
+<!-- The optional 3D view (js/view3d/) reads the game and draws it with three.js;
+     the game above runs the same with or without it. -->
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+  }
+}
+</script>
+<script type="module" src="js/view3d/main3d.js"></script>
 </body>
 </html>

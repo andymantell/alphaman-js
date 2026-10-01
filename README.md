@@ -182,6 +182,27 @@ Saved games (`NAME.ALF` plus `NAME.SAV`) live in the browser. The list under
 the game screen lets you load, delete, download (as a `.zip` of the original
 DOS files, which also work with the DOS version) and upload them.
 
+### 3D view
+
+Press **F8** (or the *3D view* button) to see the map as extruded neon
+characters in 3D; F8 again goes back to 2D. The stats and messages stay as
+they are. **Shift+F8** (or the menu) picks the camera:
+
+* *Behind* (the default) and *First person* turn with you: Up/Down move
+  forwards and backwards, Left/Right turn by 45 degrees, keypad 4/6 step
+  sideways and 7/9/1/3 move diagonally.
+* *Tabletop* looks down on the area with north up; the keys are unchanged.
+
+Outdoors, the neighbouring areas are shown dimmed: their terrain and
+buildings, exactly as the game will make them when you walk in (creatures and
+items only appear when you arrive). Everything else, including what you can
+see at night and inside castles, follows the 2D game.
+
+The 3D view lives in `js/view3d/` and uses [three.js](https://threejs.org/)
+from a CDN. It only reads the game's screen and variables; its only effect on
+the game is sending keypresses, so the game plays exactly the same with or
+without it.
+
 Developer tools:
 
 * `node tools/build-data.mjs` - regenerates `js/data.js`
