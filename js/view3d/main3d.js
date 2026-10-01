@@ -11,7 +11,7 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-import { glyphGeometry, glyphHeight, isMobile } from './glyphs.js';
+import { glyphGeometry, glyphHeight, isMobile, standingGeometry, standHeight } from './glyphs.js';
 import { Layer, EGA } from './layer.js';
 import { previewArea } from './preview.js';
 import { installInput } from './input.js';
@@ -68,13 +68,28 @@ const mobiles = { local: [], world: [] };
 const mobileMaterial = (fc) => new THREE.MeshBasicMaterial({
   vertexColors: true, color: EGA[fc], transparent: true, opacity: 0,
 });
+// Upright and facing the camera from the low cameras, flat from above.
+let standing = false;
+function styleMobile(m) {
+  const code = m.v & 255, fc = (m.v >> 8) & 15;
+  if (standing) {
+    const h = standHeight(code);
+    m.mesh.geometry = standingGeometry(code);
+    m.mesh.scale.set(h * 9 / 16, h, 1);
+  } else {
+    m.mesh.geometry = glyphGeometry(code);
+    m.mesh.scale.set(1, glyphHeight(code, fc), 1);
+    m.mesh.rotation.set(0, 0, 0);
+  }
+}
 function makeMobile(group, x, z, v) {
-  const code = v & 255, fc = (v >> 8) & 15;
-  const mesh = new THREE.Mesh(glyphGeometry(code), mobileMaterial(fc));
-  mesh.scale.set(1, glyphHeight(code, fc), 1);
+  const fc = (v >> 8) & 15;
+  const mesh = new THREE.Mesh(glyphGeometry(v & 255), mobileMaterial(fc));
   mesh.position.set(x + 0.5, 0, z + 0.5);
   group.add(mesh);
-  return { mesh, v, x, z, tx: x, tz: z, gone: false };
+  const m = { mesh, v, x, z, tx: x, tz: z, gone: false };
+  styleMobile(m);
+  return m;
 }
 function updateMobiles(list, group, cells) {
   const unmatched = new Set(list.filter((m) => !m.gone));
@@ -193,6 +208,7 @@ function refreshPreviews() {
     const [mx, my] = k.split(',').map(Number);
     const cells = previewArea(mx, my);
     const layer = new Layer(previewGroup, PREVIEW_BRIGHTNESS);
+    layer.setStanding(standing);
     if (cells) layer.set(cells.map(([x, y, v]) => [(mx - 2) * 50 + x - 2, (my - 2) * 20 + y - 2, v]));
     previews.set(k, layer);
     needRender = true;
@@ -277,7 +293,7 @@ function placeCamera(dt) {
       lookGoal.set(tmpTarget.x + fx * 4, 0, tmpTarget.z + fz * 4);
       break;
     case 'first':
-      camGoal.set(tmpTarget.x - fx * 0.15, 0.62, tmpTarget.z - fz * 0.15);
+      camGoal.set(tmpTarget.x - fx * 0.15, 0.75, tmpTarget.z - fz * 0.15);
       lookGoal.set(tmpTarget.x + fx * 6, 0.35, tmpTarget.z + fz * 6);
       break;
     case 'table':
@@ -299,6 +315,27 @@ function placeCamera(dt) {
 }
 const fog = new THREE.Fog(0x000000, 16, 42);
 
+// Stands characters up (or lays them down) for the camera in use, and turns
+// the upright ones to face it.
+function faceCamera() {
+  let changed = false;
+  const want = view.scene === 'local' && (view.camera === 'behind' || view.camera === 'first');
+  if (want !== standing) {
+    standing = want;
+    localLayer.setStanding(standing);
+    for (const l of previews.values()) l.setStanding(standing);
+    for (const m of mobiles.local) styleMobile(m);
+    changed = true;
+  }
+  if (standing) {
+    const yaw = view.yaw;
+    if (localLayer.setYaw(yaw)) changed = true;
+    for (const l of previews.values()) if (l.setYaw(yaw)) changed = true;
+    for (const m of mobiles.local) m.mesh.rotation.set(0, -yaw, 0);
+  }
+  return changed;
+}
+
 // ------------------------------------------------------------ main loop
 // Draws only when something changed or is still moving.
 let last = performance.now();
@@ -313,6 +350,7 @@ function frame(now) {
   if (animateMobiles(mobiles.local, dt, hide)) needRender = true;
   if (animateMobiles(mobiles.world, dt, -1)) needRender = true;
   if (placeCamera(dt)) needRender = true;
+  if (faceCamera()) needRender = true;
   if (!needRender) return;
   needRender = false;
   composer.render();
