@@ -366,7 +366,19 @@ select.setAttribute('aria-label', '3D camera');
 for (const [k, label] of Object.entries(CAMERAS)) select.add(new Option(label, k));
 const hint = document.createElement('span');
 hint.className = 'hint';
-controls.append(button, select, hint);
+const fastLabel = document.createElement('label');
+const fast = document.createElement('input');
+fast.type = 'checkbox';
+try { fast.checked = localStorage.getItem('alphaman-3d-fast-areas') !== 'off'; } catch { fast.checked = true; }
+fastLabel.append(fast, ' Fast area changes');
+fastLabel.title = 'In 3D, enter a new area straight away instead of after the original one second pause';
+fast.addEventListener('change', () => {
+  try { localStorage.setItem('alphaman-3d-fast-areas', fast.checked ? 'on' : 'off'); } catch { /* ignore */ }
+  fast.blur();
+});
+controls.append(button, select, fastLabel, hint);
+// Only while the 3D view is on; in 2D the game keeps its original pause.
+GameHooks.fastAreaChange = () => view.on && fast.checked;
 button.addEventListener('click', () => { view.toggle(); button.blur(); });
 select.addEventListener('change', () => { setCamera(select.value); select.blur(); });
 
@@ -381,6 +393,7 @@ function setOn(on) {
   button.textContent = on ? '2D view (F8)' : '3D view (F8)';
   button.setAttribute('aria-pressed', String(on));
   select.disabled = !on;
+  fastLabel.hidden = !on;
   if (!on) setOverlay(false);
   updateHint();
 }

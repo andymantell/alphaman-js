@@ -545,8 +545,12 @@ async function DetailedMap(loadmappossible) {
   screenPages(0, 0); l1 = oldl1$; l2 = oldl2$; l3 = oldl3$;
   if (starting) vpage = 0; else vpage = 1;
   PrintMessage(7, 0);
-  while (Math.abs(timer() - t1) < 1) await sleepSeconds(0.05);
-  DumpBuffer();
+  // The original waits until at least one second has passed and then throws
+  // away any keys pressed meanwhile.  The 3D view can skip both (GameHooks).
+  if (!GameHooks.fastAreaChange()) {
+    while (Math.abs(timer() - t1) < 1) await sleepSeconds(0.05);
+    DumpBuffer();
+  }
   screenPages(vpage, vpage); numroll = cint(rnd(Math.fround(-seed - gt)));
 }
 
