@@ -126,6 +126,13 @@ class TextScreen {
     this.dirty = true;
   }
 
+  // One PRINT item: like QuickBasic, an item that does not fit on the rest of
+  // the line (and would fit on a line of its own) starts on the next line.
+  printItem(text) {
+    if (this.col > 1 && this.col - 1 + text.length > SCREEN_COLS && text.length <= SCREEN_COLS) this.newline();
+    this.print(text);
+  }
+
   // PRINT text (with newline).
   println(text = '') {
     this.print(text);

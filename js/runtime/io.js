@@ -23,7 +23,7 @@ function printText(v) {
   if (v && v.single !== undefined) return str$(v.single, 'single') + ' ';
   return String(v);
 }
-function print(...items) { for (const v of items) SCR.print(printText(v)); }
+function print(...items) { for (const v of items) SCR.printItem(printText(v)); }
 function println(...items) { print(...items); SCR.newline(); }
 function printTab(n) { SCR.tab(n); }
 
