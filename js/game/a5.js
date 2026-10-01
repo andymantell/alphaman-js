@@ -218,7 +218,7 @@ async function CheckFatPlus() {
     }
   }
 
-  let changed = 0;
+  let olddark = 0, changed = 0;
   [dark, olddark, changed] = SetDark(dark, olddark, changed); if (changed) ChangeDark();
 
   await Timely();
