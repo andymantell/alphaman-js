@@ -36,7 +36,7 @@ const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(60, COLS * 9 / (ROWS * 16), 0.05, 400);
 const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
-const bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.55, 0.3, 0.12);
+const bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.5, 0.3, 0.2);
 composer.addPass(bloom);
 composer.addPass(new OutputPass());
 
@@ -201,11 +201,15 @@ function refreshPreviews() {
 
 function update() {
   const page = SCR.vpage;
-  const mapShown = (page === 0 || page === 1) && isMapPage(page);
+  // Page 1 only ever holds the local map (outdoors, castles, lairs); page 0
+  // holds the main map once a game is under way (with its frame; the intro
+  // screen uses it too).  Inside castles the local map has no frame of its
+  // own, so page 1 is recognised by the main map being in place on page 0.
+  const playing = isMapPage(0);
   let target = null;
-  if (mapShown && page === 1) target = 'local';
-  else if (mapShown && page === 0 && (view.wantWorld || !view.localSnap)) target = 'world';
-  else if (mapShown && page === 0) target = view.scene;      // the map flashes up while an area is made
+  if (playing && page === 1) target = 'local';
+  else if (playing && page === 0 && (view.wantWorld || !view.localSnap)) target = 'world';
+  else if (playing && page === 0) target = view.scene;      // the map flashes up while an area is made
   if (page === 1) view.wantWorld = false;
 
   setOverlay(view.on && !!target);
