@@ -1011,7 +1011,7 @@ async function IntroScreen() {
   color(2); locandpr(21, 29, 280, 1, 25);
   locandpr(22, 29, 280, 26, 21);
   locandpr(23, 29, 280, 47, 12);
-  locate(20, 53); d$ = await lineInput('', true); difficulty = val(d$);
+  locate(20, 53); GameWait.number(); d$ = await lineInput('', true); difficulty = val(d$);
   if (difficulty === 1) {
     difficulty = moderateplay;
   } else if (difficulty > 1) {
@@ -1330,7 +1330,7 @@ async function MessPause(fc, bc) {
   if (not(bitit)) {
     l3 = ''; PrintMessage(fc, bc); if (fc > 15) color(fc % 16, bc);
     for (;;) {    // MesPaws:
-      locate(25, 1); Printjnk(35, 1, 32); await PauseForKey();
+      locate(25, 1); Printjnk(35, 1, 32); GameWait.next('continue'); await PauseForKey();
       if (st1 !== bl && st1 !== chr$(27)) {
         fc = ((fc + 8) % 16); if (fc === 0) fc = 7;
         color(fc, bc); locate(23, 1); print(l1);
@@ -1653,7 +1653,7 @@ async function SelectGoody(num, colr, pak) {
   }
   PrintMessage(colr, 0);
   for (;;) {   // sg:
-    await PauseForKey(); k = asc(st1);
+    GameWait.next('item', { pak, count: nnn, extras: num }); await PauseForKey(); k = asc(st1);
     switch (k) {
       case 27: num = 0; ClearMess(); return num;
       case 49: if ((num & 1)) { num = -1; return num; } Wrong(); continue;

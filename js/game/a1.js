@@ -169,7 +169,7 @@ async function AlphaMan(commandLine) {
       if (asleep) {
         ljnk(252, 28, 5, 1); st1 = chr$(46); forcefield = FALSE; tentgrab = 0;
       } else if ((mheal <= 0)) {
-        await PauseForKey();
+        GameWait.next('command'); await PauseForKey();
       } else {
         st1 = chr$(46);
       }

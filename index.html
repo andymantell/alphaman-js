@@ -5,6 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>AlphaMan</title>
 <meta name="description" content="AlphaMan (1995), the DOS roguelike by Jeffrey R. Olson, ported to the browser.">
+<!-- For phones: added to the Home Screen it opens without the browser's bars. -->
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="theme-color" content="#000000">
+<link rel="stylesheet" href="js/touch/touch.css">
 <style>
   :root {
     --bg: #101014;
@@ -144,6 +152,8 @@
 <script src="js/game/a8.js"></script>
 <script src="js/savepanel.js"></script>
 <script src="js/main.js"></script>
+<!-- Touch controls for phones and tablets (js/touch/): they only send keys. -->
+<script src="js/touch/touch.js"></script>
 
 <!-- The optional 3D view (js/view3d/) reads the game and draws it with three.js;
      the game above runs the same with or without it. -->

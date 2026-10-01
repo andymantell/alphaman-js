@@ -1,0 +1,172 @@
+/* Touch controls (js/touch/touch.js).  Everything here applies only with
+   body.touch, so the desktop page is unchanged. */
+
+#touch-settings-button { display: inline-block; }
+
+body.touch {
+  padding: 0; gap: 0;
+  -webkit-user-select: none; user-select: none;
+  -webkit-touch-callout: none;
+  --side: max(80px, calc((100vw - 100dvh * 1.8) / 2));
+}
+body.touch #game {
+  max-width: none; width: 100vw;
+  height: 100vh; height: 100dvh;
+  display: flex; flex-direction: column;
+}
+body.touch #playarea {
+  flex: 1; min-height: 0; gap: 0;
+  align-items: center; justify-content: center;
+  background: #000;
+}
+body.touch #minimap { display: none; }
+body.touch #viewport {
+  flex: none; border: 0;
+  width: min(calc(100vw - 2 * var(--side)), calc(100dvh * 1.8));
+}
+body.touch #controls { display: none; }
+body.touch #screenbox { touch-action: none; }
+
+.touch-side {
+  display: none;
+  flex: none; align-self: stretch;
+  width: var(--side);
+  grid-template-columns: 1fr 1fr; grid-template-rows: repeat(8, 1fr);
+  gap: 3px; padding: 3px;
+  touch-action: none;
+}
+body.touch .touch-side { display: grid; }
+
+/* Keys */
+.tk {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  min-width: 0; min-height: 0; padding: 0; overflow: hidden;
+  font: 600 15px/1 ui-monospace, Consolas, monospace;
+  cursor: pointer; touch-action: none;
+}
+.tk small { font-size: 9px; font-weight: 400; margin-top: 2px; white-space: nowrap; }
+
+/* EGA: black keys with a bright EGA colour, inverted while pressed. */
+body.tk-ega .tk {
+  color: var(--c, #55ffff); background: #000;
+  border: 1px solid var(--c, #55ffff); border-radius: 3px;
+  box-shadow: inset 0 0 6px color-mix(in srgb, var(--c, #55ffff) 35%, transparent);
+}
+body.tk-ega .tk.move { --c: #ffff55; }
+body.tk-ega .tk.special { --c: #ff55ff; }
+body.tk-ega .tk.down, body.tk-ega .tk.glow { color: #000; background: var(--c, #55ffff); }
+body.tk-ega .tk small { color: inherit; opacity: 0.8; }
+
+/* IBM Model M: sculpted beige keycaps with grey legends; the grey keys
+   (Esc, Enter, function keys) are darker, as on the real keyboard. */
+body.tk-modelm .touch-side { background: #2a2826; }
+body.tk-modelm .tk {
+  --cap: #e4dfd3; --cap-edge: #b9b3a5; --legend: #3b3b3b;
+  color: var(--legend);
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-weight: 500;
+  background: linear-gradient(to bottom, var(--cap) 0%, color-mix(in srgb, var(--cap) 88%, #000) 100%);
+  border: 1px solid #6f6a60; border-radius: 4px;
+  border-bottom-width: 4px; border-bottom-color: var(--cap-edge);
+  box-shadow: inset 2px 2px 0 rgba(255, 255, 255, 0.55), inset -2px -1px 0 rgba(0, 0, 0, 0.12), 0 1px 0 #000;
+}
+body.tk-modelm .tk.special, body.tk-modelm .tk.fkey {
+  --cap: #9d998f; --cap-edge: #75716a; --legend: #1e1e1e;
+}
+body.tk-modelm .tk.down {
+  border-bottom-width: 1px; margin-top: 3px;
+  box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.35);
+}
+body.tk-modelm .tk.glow { box-shadow: 0 0 0 2px #55ffff, 0 0 10px #55ffff; }
+body.tk-modelm .tk small { color: #5a5a5a; }
+
+/* Direction pad over the bottom-left of the map. */
+#touch-pad {
+  display: none;
+  position: absolute; left: 1.5%; bottom: calc(100% * 3.5 / 25);
+  width: 21%; aspect-ratio: 1;
+  grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr);
+  gap: 4%; opacity: 0.4; touch-action: none; z-index: 3;
+}
+body.touch.touch-pad #touch-pad { display: grid; }
+#touch-pad .tk { font-size: 18px; }
+body.tk-ega #touch-pad .tk { background: rgba(0, 0, 0, 0.5); }
+
+/* What the game is waiting for. */
+#touch-type {
+  display: none;
+  position: absolute; z-index: 4;
+  height: calc(100% / 25);
+  border: 1px solid #55ffff; border-radius: 2px;
+  box-shadow: 0 0 8px #55ffff, inset 0 0 6px #55ffff;
+  animation: touch-pulse 1.2s ease-in-out infinite alternate;
+}
+#touch-type.show { display: block; }
+#touch-type::after {
+  content: "tap to type"; position: absolute; right: 2px; top: 100%;
+  font: 10px/1.2 system-ui, sans-serif; color: #55ffff; white-space: nowrap;
+}
+#touch-items {
+  display: none;
+  position: absolute; z-index: 2; pointer-events: none;
+  left: calc(100% * 53 / 80); width: calc(100% * 27 / 80);
+  border: 1px solid #55ffff; box-shadow: 0 0 8px #55ffff;
+  animation: touch-pulse 1.2s ease-in-out infinite alternate;
+}
+#touch-items.show { display: block; }
+@keyframes touch-pulse { from { opacity: 0.45; } to { opacity: 1; } }
+
+/* The hidden text box that brings up the phone's keyboard. */
+#touch-input {
+  position: absolute; z-index: 1; left: 0; top: 0;
+  width: 1px; height: 1px; padding: 0; border: 0;
+  opacity: 0; font-size: 16px;   /* 16px stops iOS zooming in */
+  color: transparent; background: transparent; caret-color: transparent;
+}
+
+/* While the keyboard is up: the line being typed, at the top. */
+#touch-typing {
+  display: none;
+  position: fixed; left: 0; right: 0; top: 0; z-index: 20;
+  padding: 4px 8px; gap: 8px; align-items: center;
+  background: #000; border-bottom: 1px solid #55ffff;
+}
+#touch-typing.show { display: flex; }
+#touch-typing canvas { flex: 1; min-width: 0; height: auto; image-rendering: pixelated; }
+#touch-typing button { flex: none; }
+
+/* Settings menu */
+#touch-menu {
+  position: fixed; z-index: 30; right: 8px; top: 8px;
+  max-height: calc(100dvh - 16px); overflow: auto;
+  min-width: 230px; padding: 10px 12px;
+  background: var(--panel); color: var(--text);
+  border: 1px solid var(--border); border-radius: 6px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.6);
+  font: 14px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+#touch-menu[hidden] { display: none; }
+#touch-menu h3 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin: 8px 0 4px; }
+#touch-menu h3:first-child { margin-top: 0; }
+#touch-menu .row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 4px; }
+#touch-menu label { display: flex; align-items: center; gap: 6px; }
+#touch-menu select { font: inherit; color: var(--text); background: #2a2a36; border: 1px solid var(--border); border-radius: 4px; }
+#touch-menu .game-only { display: none; }
+body.touch #touch-menu .game-only { display: block; }
+
+/* Full-page notices: turn the phone sideways, and start full screen. */
+.touch-notice {
+  display: none;
+  position: fixed; inset: 0; z-index: 40;
+  flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+  padding: 24px; text-align: center;
+  background: rgba(0, 0, 0, 0.92); color: var(--text);
+  font: 16px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+.touch-notice .big { font-size: 48px; color: #55ffff; }
+.touch-notice button { font-size: 17px; padding: 10px 22px; }
+.touch-notice p { margin: 0; max-width: 34em; }
+.touch-notice .muted { color: var(--muted); font-size: 14px; }
+body.touch #touch-start.show { display: flex; }
+@media (orientation: portrait) {
+  body.touch #touch-rotate { display: flex; }
+}

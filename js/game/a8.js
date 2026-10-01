@@ -220,7 +220,7 @@ async function BuildGoody(iii) {
 
     for (;;) {   // rebg:
       locate(max + 5, 5); Printjnk(357, 32, 27);
-      st1 = await inputString(''); choice = cint(val(st1));
+      GameWait.number(); st1 = await inputString(''); choice = cint(val(st1));
       if (choice === 0) { fatadd = 1; iii = FALSE; screenPages(vpage); return iii; }
       if (choice >= 1 && choice <= max) {
         iii = TRUE;
@@ -246,7 +246,7 @@ async function BuildGoody(iii) {
           locate(max + 9, 5); Printjnk(417, 1, 21);
           minuse = cint(10 / maxenergy); if (minuse < 1) minuse = 1;
           print(str$(minuse), jnk$(416, 35, 5)); if (minuse > 1) print('s');
-          st1 = await inputString(' '); energygiven = cint(val(st1));
+          GameWait.number(); st1 = await inputString(' '); energygiven = cint(val(st1));
           if (energygiven > 10) energygiven = 10;
           if (energygiven > partsenergy) energygiven = partsenergy;
           if (energygiven < minuse) energygiven = 0;
@@ -1043,7 +1043,7 @@ async function Target(num, range, dx, dy, avoidcolr) {
       }
       PutSym(sym, localx + ndx, localy + ndy, fc, 4, 1);
       dx = ndx; dy = ndy;
-      await PauseForKey();
+      GameWait.next('target', { page: 1, x: localx + dx, y: localy + dy }); await PauseForKey();
       response = 1000 * (len(st1) - 1) + asc(right$(st1, 1));
       done = FALSE;
       switch (response) {
@@ -1099,7 +1099,7 @@ async function TargetLong(lsym, range, nlx, nly, fc, bc) {
     PutSym(lsym, lx, ly, fc, bc, 0);
     [lsym, fc, bc] = GetSym(nlx, nly, 0);
     PutSym(lsym, nlx, nly, fc, 3, 0);
-    lx = nlx; ly = nly; await PauseForKey();
+    lx = nlx; ly = nly; GameWait.next('target', { page: 0, x: lx, y: ly }); await PauseForKey();
     response = 1000 * (len(st1) - 1) + asc(right$(st1, 1));
     done = FALSE;
     switch (response) {
@@ -1352,7 +1352,7 @@ async function UseMutat(i) {
             if (hmmut) turns = cint(turns / 2);
             Ljnkbig(74, 1, 12, 74, 13, 23, str$(turns), 1, 1);
             ljnk(75, 1, 40, 2); PrintMessage(9, 0);
-            color(9, 0); locate(24, 42); st1 = await lineInput('', true); ii = cint(val(st1));
+            color(9, 0); locate(24, 42); GameWait.number(); st1 = await lineInput('', true); ii = cint(val(st1));
             if (ii < turns) mheal = ii; else mheal = turns;
             if (mheal <= 0) {
               didstuff = FALSE; ClearMess();

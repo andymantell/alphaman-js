@@ -32,7 +32,7 @@ const browserGlobals = ['window', 'document', 'console', 'localStorage', 'perfor
   'TextDecoder', 'DecompressionStream', 'Response', 'atob', 'btoa', 'location', 'confirm', 'globalThis',
   'Int16Array', 'Int32Array', 'Uint8Array', 'Uint32Array', 'Float32Array', 'Map', 'Set', 'Math', 'Number',
   'String', 'Object', 'Array', 'Error', 'JSON', 'Date', 'Symbol', 'Infinity', 'NaN', 'isNaN', 'parseInt',
-  'encodeURIComponent', 'decodeURIComponent'];
+  'encodeURIComponent', 'decodeURIComponent', 'matchMedia', 'setInterval', 'getComputedStyle', 'navigator'];
 // Shared COMMON variables are created with defGlobal(); collect their names.
 const state = fs.readFileSync(path.join(root, 'js/game/state.js'), 'utf8');
 const dyn = [];

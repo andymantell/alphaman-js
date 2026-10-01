@@ -41,11 +41,12 @@ jobs:
       - name: Assemble the site
         run: |
           mkdir _site
-          cp -r index.html js LICENSE _site/
+          cp -r index.html manifest.webmanifest icons js LICENSE _site/
           # Give every script URL the commit as a version, so browsers never
           # mix a new page with cached scripts from an older one.
           v="${GITHUB_SHA::8}"
           sed -i -E "s#(src=\"js/[^\"]+\.js)\"#\1?v=$v\"#g" _site/index.html
+          sed -i -E "s#(href=\"js/[^\"]+\.css)\"#\1?v=$v\"#g" _site/index.html
           sed -i -E "s#(from '\./[^']+\.js)'#\1?v=$v'#g" _site/js/view3d/*.js
           grep -c "?v=$v" _site/index.html
 

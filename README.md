@@ -177,6 +177,7 @@ formats. Typos and quirks of the original code are kept and marked `(sic)`.
   `node tools/build-data.mjs` from the data programs in `original/` and from
   `data/ALPHAMAN.5`
 * `js/savepanel.js` - the saved-games list under the game screen
+* `js/view3d/` - the optional 3D view; `js/touch/` - touch controls
 
 Saved games (`NAME.ALF` plus `NAME.SAV`) live in the browser. The list under
 the game screen lets you load, delete, download (as a `.zip` of the original
@@ -222,6 +223,33 @@ from a CDN. It only reads the game's screen and variables and sends
 keypresses. The one exception is a small hook (`GameHooks` in
 `js/runtime/io.js`) for fast area changes, which does nothing while the 3D
 view is off, so the 2D game plays exactly as before.
+
+### Phones and tablets
+
+On a touch screen the game gets touch controls (they can also be turned on
+or off under *Settings*):
+
+* the game's commands as buttons either side of the screen, with the
+  less used ones (save, quit, wimpy critter, credits) in the settings menu;
+* a direction pad over the bottom-left of the map, and touching a square
+  on the map walks towards it (holding keeps walking);
+* when the game asks for something, a tap does the obvious thing: it
+  continues after a message, picks the item tapped in the list on the
+  right, moves the targeting cursor to the square tapped (tap it again to
+  pick it), or, where you type a name or number, brings up the keyboard
+  (the line being typed is shown at the top while the keyboard is up);
+* two button styles, EGA and IBM Model M.
+
+The game is played sideways. *Play full screen* fills the screen (and on
+Android also keeps it sideways). iPhones have no full screen for web pages;
+adding AlphaMan to the Home Screen (Share, *Add to Home Screen*) opens it
+without Safari's bars, though saved games there are kept apart from those in
+Safari.
+
+The touch controls live in `js/touch/` and only send keypresses. To know
+what the game is waiting for, the game labels its waits (`GameWait` in
+`js/runtime/io.js`); the labels are never read by the game, so it plays
+exactly the same with or without them.
 
 Developer tools:
 

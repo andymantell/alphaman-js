@@ -30,11 +30,35 @@ function printTab(n) { SCR.tab(n); }
 // INKEY$
 function inkey$() { return KB.inkey(); }
 
+// What the game is waiting for, for the touch controls (js/touch/).  The game
+// only labels its waits (GameWait.next) and never reads any of this back, so
+// it runs the same with or without the touch controls.
+//   kind: null (not waiting), 'command', 'item', 'target', 'continue',
+//         'key' (anything else) or 'text' (a line being typed)
+//   info: details of the wait (for 'text': row, col, numeric, value)
+const GameWait = {
+  kind: null, info: null,
+  label: null, numeric: false,
+  listeners: [],
+  // Labels the next key wait.
+  next(kind, info = null) { this.label = { kind, info }; },
+  // Marks the next line input as a number.
+  number() { this.numeric = true; },
+  set(kind, info) {
+    this.kind = kind; this.info = info;
+    for (const f of this.listeners) f(kind, info);
+  },
+};
+
 // WHILE a$ = "": a$ = INKEY$: WEND
 async function getKey() {
+  const label = GameWait.label || { kind: 'key', info: null };
+  GameWait.label = null;
+  let told = false;
   for (;;) {
     const k = KB.inkey();
-    if (k !== '') return k;
+    if (k !== '') { if (GameWait.kind) GameWait.set(null, null); return k; }
+    if (!told) { told = true; GameWait.set(label.kind, label.info); }
     await KB.whenKey();
   }
 }
@@ -48,10 +72,14 @@ async function lineInput(prompt = '', stayOnLine = false) {
   SCR.print(prompt);
   const startRow = SCR.row, startCol = SCR.col;
   let s = '';
+  const wait = { row: startRow, col: startCol, numeric: GameWait.numeric, value: '' };
+  GameWait.numeric = false;
   const oldCursor = SCR.cursorVisible;
   SCR.cursorVisible = true;
   SCR.dirty = true;
   for (;;) {
+    wait.value = s;
+    GameWait.next('text', wait);
     const k = await getKey();
     if (k === '\r') break;
     if (k === '\b') {
@@ -107,6 +135,7 @@ async function inputString(prompt = '', question = false) {
 // INPUT "prompt", v for one numeric variable.
 async function inputNumber(prompt = '', question = false) {
   for (;;) {
+    GameWait.number();
     const line = (await lineInput(prompt + (question ? '? ' : ''))).trim();
     if (line === '') return 0;
     if (/^[+-]?(\d+\.?\d*|\.\d+)([ED][+-]?\d+)?[!#%&]?$/i.test(line) || /^&H[0-9A-F]+$/i.test(line)) return val(line);
