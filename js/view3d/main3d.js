@@ -50,6 +50,7 @@ function resize() {
   composer.setSize(w, h);
   camera.aspect = w / h;
   camera.updateProjectionMatrix();
+  needRender = true;
 }
 new ResizeObserver(resize).observe(canvas);
 
@@ -95,6 +96,7 @@ function updateMobiles(list, group, cells) {
 }
 function animateMobiles(list, dt, hideCode) {
   const k = 1 - Math.exp(-dt * 14);
+  let moving = false;
   for (let i = list.length - 1; i >= 0; i--) {
     const m = list[i], mat = m.mesh.material;
     m.x += (m.tx - m.x) * k; m.z += (m.tz - m.z) * k;
@@ -104,7 +106,10 @@ function animateMobiles(list, dt, hideCode) {
     if (m.gone && mat.opacity <= 0) {
       m.mesh.removeFromParent(); mat.dispose(); list.splice(i, 1);
     }
+    if (Math.abs(m.tx - m.x) > 1e-3 || Math.abs(m.tz - m.z) > 1e-3 || (mat.opacity > 0 && mat.opacity < 1)) moving = true;
+    if (m.gone || m.mesh.visible !== m.lastVisible) { moving = true; m.lastVisible = m.mesh.visible; }
   }
+  return moving;
 }
 function clearMobiles(list) {
   for (const m of list) { m.mesh.removeFromParent(); m.mesh.material.dispose(); }
@@ -171,7 +176,8 @@ function areaOrigin() {
 
 function refreshPreviews() {
   const outdoors = view.scene === 'local' && !incastle;
-  previewGroup.visible = outdoors && dark === 0;
+  const show = outdoors && dark === 0;
+  if (previewGroup.visible !== show) { previewGroup.visible = show; needRender = true; }
   if (!outdoors) return;
   if (previewSeed !== seed) {
     for (const l of previews.values()) l.dispose();
@@ -189,6 +195,7 @@ function refreshPreviews() {
     const layer = new Layer(previewGroup, PREVIEW_BRIGHTNESS);
     if (cells) layer.set(cells.map(([x, y, v]) => [(mx - 2) * 50 + x - 2, (my - 2) * 20 + y - 2, v]));
     previews.set(k, layer);
+    needRender = true;
   }
 }
 
@@ -202,7 +209,8 @@ function update() {
   if (page === 1) view.wantWorld = false;
 
   setOverlay(view.on && !!target);
-  if (!target) return;
+  if (!target) return false;
+  let changed = view.scene !== target;
   view.scene = target;
 
   if (target === 'local' && page === 1) {
@@ -219,6 +227,7 @@ function update() {
       if (changedArea && incastle) clearMobiles(mobiles.local);
       updateMobiles(mobiles.local, localGroup, movers);
       view.localSnap = snap;
+      changed = true;
       if (changedArea && view.localOrigin[0] !== CASTLE_ORIGIN) {
         const p = previews.get(`${mainx},${mainy}`);   // the real area replaces its preview
         if (p) { p.dispose(); previews.delete(`${mainx},${mainy}`); }
@@ -236,11 +245,13 @@ function update() {
       worldLayer.set(statics);
       updateMobiles(mobiles.world, worldGroup, movers.filter(([, , v]) => (v & 255) === 1));
       view.worldSnap = snap;
+      changed = true;
     }
     view.player.set(mainx - 2 + 0.5, 0, mainy - 2 + 0.5);
   }
   localGroup.visible = view.scene === 'local';
   worldGroup.visible = view.scene === 'world';
+  return changed;
 }
 
 // ------------------------------------------------------------ cameras
@@ -274,26 +285,32 @@ function placeCamera(dt) {
       lookGoal.set(tmpTarget.x, 0, tmpTarget.z);
   }
   const k = cameraPlaced ? 1 - Math.exp(-dt * 8) : 1;
+  const moving = camera.position.distanceToSquared(camGoal) > 1e-6 || lookAt.distanceToSquared(lookGoal) > 1e-6;
   camera.position.lerp(camGoal, k);
   lookAt.lerp(lookGoal, k);
   camera.lookAt(lookAt);
   cameraPlaced = true;
   scene.fog = mode === 'behind' || mode === 'first' ? fog : null;
+  return moving;
 }
 const fog = new THREE.Fog(0x000000, 16, 42);
 
 // ------------------------------------------------------------ main loop
+// Draws only when something changed or is still moving.
 let last = performance.now();
+let needRender = true;
 function frame(now) {
   requestAnimationFrame(frame);
   const dt = Math.min(0.1, (now - last) / 1000); last = now;
   if (!view.on) return;
-  update();
+  if (update()) needRender = true;
   if (!overlayShown) return;
   const hide = view.scene === 'local' && view.camera === 'first' ? 1 : -1;
-  animateMobiles(mobiles.local, dt, hide);
-  animateMobiles(mobiles.world, dt, -1);
-  placeCamera(dt);
+  if (animateMobiles(mobiles.local, dt, hide)) needRender = true;
+  if (animateMobiles(mobiles.world, dt, -1)) needRender = true;
+  if (placeCamera(dt)) needRender = true;
+  if (!needRender) return;
+  needRender = false;
   composer.render();
 }
 requestAnimationFrame(frame);
@@ -315,7 +332,7 @@ function setOverlay(show) {
   if (show === overlayShown) return;
   overlayShown = show;
   canvas.style.display = show ? 'block' : 'none';
-  if (show) { resize(); cameraPlaced = false; }
+  if (show) { resize(); cameraPlaced = false; needRender = true; }
 }
 function setOn(on) {
   view.on = on;
