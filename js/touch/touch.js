@@ -372,6 +372,10 @@
   document.addEventListener('webkitfullscreenchange', updateStart);
   apply();
 
+  // Fast fight (no space needed between blows) starts on with touch controls;
+  // F in the More menu still turns it off.
+  GameHooks.fastFightOn = () => document.body.classList.contains('touch');
+
   // For tests.
   window.AlphaManTouch = { apply, isOn, menu, begin };
 })();

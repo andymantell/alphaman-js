@@ -240,6 +240,8 @@ or off under *Settings*):
   right, moves the targeting cursor to the square tapped (tap it again to
   pick it), or, where you type a name or number, brings up the keyboard
   (the line being typed is shown at the top while the keyboard is up);
+* fast fight (no space bar needed between blows) starts on; F in the
+  *More* menu turns it off;
 * two button styles, EGA and IBM Model M.
 
 The game is played sideways. *Play full screen* fills the screen (and on
@@ -248,7 +250,8 @@ adding AlphaMan to the Home Screen (Share, *Add to Home Screen*) opens it
 without Safari's bars, though saved games there are kept apart from those in
 Safari.
 
-The touch controls live in `js/touch/` and only send keypresses. To know
+The touch controls live in `js/touch/` and only send keypresses, apart
+from a hook (`GameHooks.fastFightOn`) that starts fast fight on. To know
 what the game is waiting for, the game labels its waits (`GameWait` in
 `js/runtime/io.js`); the labels are never read by the game, so it plays
 exactly the same with or without them.

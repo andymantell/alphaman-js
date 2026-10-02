@@ -74,6 +74,7 @@ async function AlphaMan(commandLine) {
       }
       break;
     }
+    if (GameHooks.fastFightOn()) fastfightlocal = TRUE;   // touch controls only
     if (incastle === 0) { await DetailedMap(FALSE); firstlocal = FALSE; }
     if (Comm$ !== '') await DisplayCharacter();
     didstuff = TRUE;   // for first weather check

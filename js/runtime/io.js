@@ -143,14 +143,16 @@ async function inputNumber(prompt = '', question = false) {
   }
 }
 
-// Lets the browser render and handle events during long stretches of play
-// that never wait for a key (e.g. while the character is asleep).
-// Hooks for the optional 3D view's conveniences.  With the 3D view off they
-// all return false and the game runs the original code unchanged.
+// Hooks for the conveniences of the optional 3D view and touch controls.
+// With those off they all return false and the game runs the original code
+// unchanged.
 const GameHooks = {
   fastAreaChange: () => false,   // skip the one second minimum when entering an area
+  fastFightOn: () => false,      // start a game with fast fight on
 };
 
+// Lets the browser render and handle events during long stretches of play
+// that never wait for a key (e.g. while the character is asleep).
 let lastYield = 0;
 async function yieldToBrowser() {
   const now = performance.now();
