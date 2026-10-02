@@ -36,6 +36,7 @@ body.touch #screenbox { touch-action: none; }
   touch-action: none;
 }
 body.touch .touch-side { display: grid; }
+#touch-right { grid-template-rows: repeat(4, 1fr); }
 
 /* Keys */
 .tk {

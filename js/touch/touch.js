@@ -34,11 +34,11 @@
     ['t', 't', 'throw'], ['u', 'u', 'use'], ['U', 'U', 'unuse'], ['X', 'X', 'exam'],
     ['Z', 'Z', 'sleep'], ['<', '<', 'down'], ['>', '>', 'up'], ['.', '.', 'rest', 'move'],
   ];
+  // The rest of the commands are in the More menu.  'panel' switches the
+  // right of the screen between stats (F1) and items (F2).
   const RIGHT = [
-    ['?', '?', 'help'], ['F', 'F', 'fast'], ['P', 'P', 'msg'], [K.F1, 'F1', 'stats', 'fkey'],
-    [K.F2, 'F2', 'items', 'fkey'], [K.F3, 'F3', 'known', 'fkey'], [K.F4, 'F4', 'status', 'fkey'], [K.F5, 'F5', 'map', 'fkey'],
-    [K.F6, 'F6', 'local', 'fkey'], [K.F7, 'F7', 'symbols', 'fkey'], [K.F10, 'F10', 'sneaky', 'fkey'], ['\x1b', 'Esc', 'cancel', 'special'],
-    ['\r', '↵', 'enter', 'special'], [' ', '␣', 'space', 'move'], ['kbd', '⌨', 'type', 'special'], ['menu', '⚙', 'menu', 'special'],
+    ['panel', 'F1/2', 'stats/items', 'fkey'], ['P', 'P', 'msg'], ['\x1b', 'Esc', 'cancel', 'special'], ['\r', '↵', 'enter', 'special'],
+    [' ', '␣', 'space', 'move'], ['kbd', '⌨', 'type', 'special'], ['?', '?', 'help'], ['menu', '\u2261', 'more', 'special'],
   ];
   const PADKEYS = [
     [K.Home, '↖'], [K.ArrowUp, '↑'], [K.PageUp, '↗'],
@@ -82,6 +82,7 @@
       if (key === 'kbd') { openKeyboard(); return; }
       if (key === 'menu') { toggleMenu(); return; }
       target = null;
+      if (key === 'panel') { send(globalThis.rdisp === 2 ? K.F1 : K.F2); return; }
       startHold(() => key, repeat);
     });
     const up = () => { b.classList.remove('down'); stopHold(); };
@@ -321,9 +322,15 @@
   const padBox = el('input', { type: 'checkbox' });
   const fsButton = mk('Full screen', () => { menu.hidden = true; toggleFullScreen(); });
   const gameRows = el('div', { className: 'game-only' }, [
+    el('h3', { textContent: 'Look' }),
+    el('div', { className: 'row' }, [mk('Main map (F5)', gameKey(K.F5)), mk('Local map (F6)', gameKey(K.F6))]),
+    el('div', { className: 'row' }, [mk('Known berries & devices (F3)', gameKey(K.F3))]),
+    el('div', { className: 'row' }, [mk('Condition (F4)', gameKey(K.F4)), mk('Symbols (F7)', gameKey(K.F7))]),
     el('h3', { textContent: 'Game' }),
+    el('div', { className: 'row' }, [mk('Fast fight on/off (F)', gameKey('F'))]),
     el('div', { className: 'row' }, [mk('Save (S)', gameKey('S')), mk('Quit (Q)', gameKey('Q'))]),
     el('div', { className: 'row' }, [mk('Wimpy critter (W)', gameKey('W')), mk('Credits (F9)', gameKey(K.F9))]),
+    el('div', { className: 'row' }, [mk('Boss key: fake DOS (F10)', gameKey(K.F10))]),
     el('h3', { textContent: 'Screen' }),
     el('div', { className: 'row' }, canFullScreen ? [fsButton] : []),
     el('label', {}, [padBox, 'Direction pad']),

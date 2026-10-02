@@ -229,8 +229,10 @@ view is off, so the 2D game plays exactly as before.
 On a touch screen the game gets touch controls (they can also be turned on
 or off under *Settings*):
 
-* the game's commands as buttons either side of the screen, with the
-  less used ones (save, quit, wimpy critter, credits) in the settings menu;
+* the everyday commands as buttons either side of the screen (one button
+  switches the right of the screen between stats and items, F1/F2); the
+  rest (the F3-F10 screens, fast fight, save, quit, wimpy critter) are in
+  the *More* menu, with the settings;
 * a direction pad over the bottom-left of the map, and touching a square
   on the map walks towards it (holding keeps walking);
 * when the game asks for something, a tap does the obvious thing: it
