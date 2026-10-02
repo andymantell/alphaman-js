@@ -721,6 +721,19 @@ async function define() {
   f2.println('WIMPCOLOR' + printText(wimpcolr)); qbClose(2);
 }
 
+// The wimpy monster as the touch controls give it (nothing is typed): the
+// same checks as define(), and the same alphaman.def.
+function setWimpy(w$, wsym$, w) {
+  if (ltrim$(rtrim$(w$)) !== '') wimpname$ = w$; else wimpname$ = 'Wolverine';
+  if (ucase$(wsym$) >= 'A' && ucase$(wsym$) <= 'Z') wimpsym = asc(wsym$); else wimpsym = 77;
+  if (w >= 0 && w <= 16) wimpcolr = w; else wimpcolr = 1;
+  if (wimpcolr === wallcolr) wimpcolr = wallcolr - 8;
+  qbClose(2); const f2 = qbOpen(2, 'alphaman.def', 'OUTPUT');
+  f2.println('WIMPNAME ' + wimpname$);
+  f2.println('WIMPSYM ' + chr$(wimpsym));
+  f2.println('WIMPCOLOR' + printText(wimpcolr)); qbClose(2);
+}
+
 // Scientific Genius: dismantle a device into parts.  Returns i (TRUE if
 // something was dismantled; the caller uses it as "remoov").
 async function Dismantle(i) {

@@ -374,16 +374,77 @@
     el('div', { className: 'big', textContent: '↻' }),
     el('p', { textContent: 'Turn your device sideways to play AlphaMan.' }),
   ]);
+  // The character: name, difficulty and wimpy critter are asked for here,
+  // before the game starts, and remembered.  The game is given them
+  // (GameHooks.newGame and GameHooks.wimpy) instead of asking.
+  const PLAYER = 'alphaman-touch-player';
+  const DIFFICULTIES = [['Normal', 0], ['Somewhat easy', 1], ['Easy', 2]];
+  const WIMP_COLORS = [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15];   // not black, nor the wall colour 9
+  let saved = {};
+  try { saved = JSON.parse(store.get(PLAYER, '{}')) || {}; } catch (e) { saved = {}; }
+  const cleanText = (v, n) => String(v || '').replace(/[^\x20-\x7e]/g, '').trim().slice(0, n);
+  const cleanLetter = (v) => (/^[A-Za-z]/.test(v || '') ? v[0] : 'M');
+  const startingFresh = !location.search;   // a saved game brings its own character
+  const nameBox = el('input', { type: 'text', maxLength: 20, placeholder: 'random if blank', value: cleanText(saved.name, 20) });
+  const wimpNameBox = el('input', { type: 'text', maxLength: 20, value: cleanText(saved.wimpName, 20) || 'Wolverine' });
+  const letterBox = el('input', { type: 'text', maxLength: 1, className: 'letter', value: cleanLetter(saved.wimpSym) });
+  for (const box of [nameBox, wimpNameBox, letterBox]) {
+    box.autocomplete = 'off'; box.spellcheck = false;
+    box.setAttribute('autocorrect', 'off'); box.setAttribute('autocapitalize', box === nameBox ? 'words' : 'off');
+  }
+  let difficulty = [0, 1, 2].includes(saved.difficulty) ? saved.difficulty : 0;
+  let wimpColor = WIMP_COLORS.includes(saved.wimpColor) ? saved.wimpColor : 1;
+  const pickers = [];
+  const diffButtons = DIFFICULTIES.map(([label, v]) => {
+    const b = el('button', { type: 'button', textContent: label });
+    b.addEventListener('click', () => { difficulty = v; refreshForm(); });
+    pickers.push(() => b.classList.toggle('on', difficulty === v));
+    return b;
+  });
+  const preview = el('span', { className: 'preview' });
+  const swatches = WIMP_COLORS.map((c) => {
+    const [r, g, bl] = PALETTE[c];
+    const b = el('button', { type: 'button', className: 'swatch', ariaLabel: 'colour ' + c });
+    b.style.background = `rgb(${r},${g},${bl})`;
+    b.addEventListener('click', () => { wimpColor = c; refreshForm(); });
+    pickers.push(() => b.classList.toggle('on', wimpColor === c));
+    return b;
+  });
+  function refreshForm() {
+    for (const f of pickers) f();
+    const [r, g, bl] = PALETTE[wimpColor];
+    preview.textContent = cleanLetter(letterBox.value);
+    preview.style.color = `rgb(${r},${g},${bl})`;
+  }
+  letterBox.addEventListener('input', refreshForm);
+  refreshForm();
+  const field = (label, ...kids) => el('div', { className: 'field' }, [el('span', { textContent: label }), ...kids]);
+  const form = el('div', { id: 'touch-player' }, [
+    el('div', { className: 'col' }, [
+      field('Your name', nameBox),
+      field('Difficulty', el('div', { className: 'seg' }, diffButtons)),
+    ]),
+    el('div', { className: 'col' }, [
+      field('Wimpy critter', wimpNameBox),
+      field('Letter', letterBox, preview),
+      el('div', { className: 'swatches' }, swatches),
+    ]),
+  ]);
+  form.hidden = !startingFresh;
+  form.addEventListener('keydown', (e) => e.stopPropagation());   // typing here is not for the game
   const playFs = el('button', { type: 'button', textContent: 'Play full screen' });
   const playHere = el('button', { type: 'button', textContent: 'Play in the page' });
   const startNote = el('p', { className: 'muted' });
   const start = el('div', { className: 'touch-notice', id: 'touch-start' }, [
-    el('p', { className: 'big', textContent: 'AlphaMan' }),
-    el('div', { className: 'row' }, canFullScreen ? [playFs, ' ', playHere] : [playHere]),
-    el('p', { textContent: '\u21bb AlphaMan is played with the device turned sideways.' }),
-    startNote,
+    el('div', { className: 'inner' }, [
+      el('p', { className: 'big', textContent: 'AlphaMan' }),
+      form,
+      el('div', { className: 'row' }, canFullScreen && !standalone ? [playFs, ' ', playHere] : [playHere]),
+      el('p', { className: 'muted', textContent: '\u21bb AlphaMan is played with the device turned sideways.' }),
+      startNote,
+    ]),
   ]);
-  if (!canFullScreen) {
+  if (!canFullScreen || standalone) {
     playHere.textContent = 'Play';
     startNote.textContent = /iPhone|iPod/.test(navigator.userAgent)
       ? 'For full screen on an iPhone, tap Share and then Add to Home Screen, and play from there. ' +
@@ -391,13 +452,42 @@
       : '';
   }
   document.body.append(rotate, start);
-  let started = false;
-  const begin = () => { started = true; start.classList.remove('show'); };
+  let started = false, player = null, releaseReady = null;
+  const ready = new Promise((resolve) => { releaseReady = resolve; });
+  const begin = () => {
+    if (startingFresh) {
+      player = {
+        name: cleanText(nameBox.value, 20), difficulty,
+        wimp: { name: cleanText(wimpNameBox.value, 20), sym: cleanLetter(letterBox.value), color: wimpColor },
+      };
+      store.set(PLAYER, JSON.stringify({
+        name: player.name, difficulty, wimpName: player.wimp.name, wimpSym: player.wimp.sym, wimpColor,
+      }));
+    }
+    started = true; start.classList.remove('show'); releaseReady();
+  };
   playFs.addEventListener('click', () => { begin(); enterFullScreen(); });
   playHere.addEventListener('click', begin);
+  // The start screen shows until Play is pressed (also on the Home Screen
+  // and full screen when it has the character to ask for).
   function updateStart() {
-    start.classList.toggle('show', document.body.classList.contains('touch') && !started && !standalone && !fsElement());
+    const on = document.body.classList.contains('touch');
+    start.classList.toggle('show', on && !started && (startingFresh || (!standalone && !fsElement())));
   }
+  // The game waits here for the character.  With the touch controls off
+  // (or a saved game being loaded) it asks as usual.
+  const touchOn = () => document.body.classList.contains('touch');
+  GameHooks.newGame = async () => {
+    if (!touchOn() || !startingFresh) return null;
+    await ready;
+    return player && { name: player.name, difficulty: player.difficulty };
+  };
+  GameHooks.wimpy = async () => {
+    if (!touchOn()) return null;
+    if (startingFresh) await ready;
+    if (player) return player.wimp;
+    return saved.wimpName ? { name: cleanText(saved.wimpName, 20), sym: cleanLetter(saved.wimpSym), color: wimpColor } : null;
+  };
 
   // ---- Settings menu.  The button for it also shows on the desktop page.
   const menu = el('div', { id: 'touch-menu', hidden: true });
@@ -461,7 +551,8 @@
   // A long press would otherwise select text or open a menu (with a buzz).
   for (const type of ['contextmenu', 'selectstart']) {
     document.addEventListener(type, (e) => {
-      if (document.body.classList.contains('touch') && e.target !== input) e.preventDefault();
+      const inForm = e.target.closest && e.target.closest('#touch-player');
+      if (document.body.classList.contains('touch') && e.target !== input && !inForm) e.preventDefault();
     }, true);
   }
   coarse.addEventListener('change', apply);

@@ -171,6 +171,32 @@ body.touch #touch-menu .game-only { display: block; }
 .touch-notice p { margin: 0; max-width: 34em; }
 .touch-notice .muted { color: var(--muted); font-size: 14px; }
 body.touch #touch-start.show { display: flex; }
+/* The start screen: scrolls when the phone's keyboard leaves little room. */
+#touch-start { justify-content: flex-start; overflow: auto; padding: 8px 16px; background: rgba(0, 0, 0, 0.97); }
+#touch-start .inner { margin: auto; display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; max-width: 640px; }
+#touch-start .big { font-size: 30px; }
+#touch-start button { font-size: 16px; padding: 8px 16px; }
+#touch-start .row { display: flex; gap: 10px; justify-content: center; }
+#touch-start .muted { font-size: 12px; }
+#touch-player { display: flex; gap: 18px; width: 100%; text-align: left; }
+#touch-player[hidden] { display: none; }
+#touch-player .col { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+#touch-player .field { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+#touch-player .field > span:first-child { flex: none; width: 6.5em; font-size: 13px; color: var(--muted); }
+#touch-player input {
+  flex: 1; min-width: 0; font: 16px/1.2 ui-monospace, Consolas, monospace;   /* 16px stops iOS zooming in */
+  color: #55ffff; background: #000; border: 1px solid #55ffff; border-radius: 3px; padding: 6px 8px;
+  -webkit-user-select: text; user-select: text;
+}
+#touch-player input.letter { flex: none; width: 2.5em; text-align: center; }
+#touch-player .preview { font: 700 22px/1 ui-monospace, Consolas, monospace; width: 1.2em; text-align: center; }
+#touch-player .seg { display: flex; gap: 4px; flex: 1; }
+#touch-player .seg button { flex: 1; padding: 6px 4px; font-size: 13px; }
+#touch-player .seg button.on { background: #55ffff; color: #000; border-color: #55ffff; }
+#touch-player .swatches { display: flex; flex-wrap: wrap; gap: 6px; }
+#touch-player .swatch { width: 28px; height: 28px; padding: 0; border: 2px solid #444; border-radius: 4px; }
+#touch-player .swatch.on { border-color: #fff; box-shadow: 0 0 0 2px #000, 0 0 0 4px #fff; }
+body.touch #touch-start input, body.touch #touch-start input * { -webkit-user-select: text; user-select: text; }
 @media (orientation: portrait) {
   body.touch #touch-rotate { display: flex; }
 }

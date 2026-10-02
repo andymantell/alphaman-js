@@ -149,6 +149,11 @@ async function inputNumber(prompt = '', question = false) {
 const GameHooks = {
   fastAreaChange: () => false,   // skip the one second minimum when entering an area
   fastFightOn: () => false,      // start a game with fast fight on
+  // Details the touch controls collect before the game starts, so that
+  // nothing has to be typed.  Both may wait (for the start screen) and give
+  // null when the game should ask as usual.
+  newGame: async () => null,     // { name, difficulty: 0 | 1 | 2 }
+  wimpy: async () => null,       // { name, sym, color }
 };
 
 // Lets the browser render and handle events during long stretches of play

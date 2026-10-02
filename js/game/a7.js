@@ -934,6 +934,8 @@ async function Initialize() {
   elvislevel = 4 * (2 * int(rnd() * 2) - 1);
   grinchlevel = 5 * (2 * int(rnd() * 2) - 1);
 
+  const wimp = await GameHooks.wimpy();   // touch controls only
+  if (wimp) { setWimpy(wimp.name, wimp.sym, wimp.color); return; }
   qbClose(2); qbOpen(2, 'alphaman.def', 'APPEND'); qbClose(2);
   const f2 = qbOpen(2, 'alphaman.def', 'INPUT');
   while (!f2.eof()) {
@@ -987,7 +989,8 @@ async function IntroScreen() {
   color(13); locandpr(16, 24, 156, 1, 34);
   locandpr(18, 24, 28, 27, 30);
   t1 = timer(); screenPages(0); DumpBuffer(); color(13);
-  if (name$ === '') name$ = await lineInput('', true);
+  const pre = await GameHooks.newGame();   // touch controls only
+  if (name$ === '') name$ = pre ? pre.name : await lineInput('', true);
   t2 = timer(); if (t2 < t1) t2 = t2 + 86400;
   seed = 5 * t2 - 4 * t1;
   while (seed > 1000) seed = seed / 2;
@@ -1011,7 +1014,9 @@ async function IntroScreen() {
   color(2); locandpr(21, 29, 280, 1, 25);
   locandpr(22, 29, 280, 26, 21);
   locandpr(23, 29, 280, 47, 12);
-  locate(20, 53); GameWait.number(); d$ = await lineInput('', true); difficulty = val(d$);
+  locate(20, 53);
+  if (pre) { d$ = String(pre.difficulty); print(d$); } else { GameWait.number(); d$ = await lineInput('', true); }
+  difficulty = val(d$);
   if (difficulty === 1) {
     difficulty = moderateplay;
   } else if (difficulty > 1) {

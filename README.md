@@ -252,6 +252,10 @@ or off under *Settings*):
   (the line being typed is shown at the top while the keyboard is up);
 * fast fight (no space bar needed between blows) starts on; F in the
   *More* menu turns it off;
+* before the game starts, a screen asks for your name, the difficulty and
+  the wimpy critter's name, letter and colour (all remembered for next
+  time), and the game does not ask for them again, nor for a name when
+  starting over after a death;
 * two button styles, EGA and IBM Model M.
 
 The game is played sideways. *Play full screen* fills the screen (and on
@@ -261,7 +265,8 @@ without Safari's bars, though saved games there are kept apart from those in
 Safari.
 
 The touch controls live in `js/touch/` and only send keypresses, apart
-from a hook (`GameHooks.fastFightOn`) that starts fast fight on. To know
+from hooks in `GameHooks` that start fast fight on and give the game the
+character's details instead of its typed prompts (`newGame`, `wimpy`). To know
 what the game is waiting for, the game labels its waits (`GameWait` in
 `js/runtime/io.js`); the labels are never read by the game, so it plays
 exactly the same with or without them.
