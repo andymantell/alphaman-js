@@ -432,20 +432,19 @@
   ]);
   form.hidden = !startingFresh;
   form.addEventListener('keydown', (e) => e.stopPropagation());   // typing here is not for the game
-  const playFs = el('button', { type: 'button', textContent: 'Play full screen' });
-  const playHere = el('button', { type: 'button', textContent: 'Play in the page' });
+  // One Play button: full screen where the browser has it.
+  const play = el('button', { type: 'button', textContent: 'Play' });
   const startNote = el('p', { className: 'muted' });
   const start = el('div', { className: 'touch-notice', id: 'touch-start' }, [
     el('div', { className: 'inner' }, [
       el('p', { className: 'big', textContent: 'AlphaMan' }),
       form,
-      el('div', { className: 'row' }, canFullScreen && !standalone ? [playFs, ' ', playHere] : [playHere]),
+      el('div', { className: 'row' }, [play]),
       el('p', { className: 'muted', textContent: '\u21bb AlphaMan is played with the device turned sideways.' }),
       startNote,
     ]),
   ]);
-  if (!canFullScreen || standalone) {
-    playHere.textContent = 'Play';
+  if (!canFullScreen) {
     startNote.textContent = /iPhone|iPod/.test(navigator.userAgent)
       ? 'For full screen on an iPhone, tap Share and then Add to Home Screen, and play from there. ' +
         'Saved games played from the Home Screen are kept apart from those in Safari.'
@@ -466,8 +465,10 @@
     }
     started = true; start.classList.remove('show'); releaseReady();
   };
-  playFs.addEventListener('click', () => { begin(); enterFullScreen(); });
-  playHere.addEventListener('click', begin);
+  play.addEventListener('click', () => {
+    begin();
+    if (canFullScreen && !standalone && !fsElement()) enterFullScreen();
+  });
   // The start screen shows until Play is pressed (also on the Home Screen
   // and full screen when it has the character to ask for).
   function updateStart() {

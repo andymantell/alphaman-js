@@ -258,7 +258,7 @@ or off under *Settings*):
   starting over after a death;
 * two button styles, EGA and IBM Model M.
 
-The game is played sideways. *Play full screen* fills the screen (and on
+The game is played sideways. *Play* fills the screen (and on
 Android also keeps it sideways). iPhones have no full screen for web pages;
 adding AlphaMan to the Home Screen (Share, *Add to Home Screen*) opens it
 without Safari's bars, though saved games there are kept apart from those in
