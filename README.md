@@ -242,8 +242,8 @@ or off under *Settings*):
   south into the next area. Dragging walks in the direction of the drag,
   like a joystick, which is easiest at the edges. A flick (a quick swipe)
   runs that way until something happens: a message, getting hurt, bumping
-  into something, a new area, a creature coming into view or close, or
-  another touch. Arrow keys over the
+  into something, a new area, a creature coming near (even an invisible
+  one, which you may need to fight), or another touch. Arrow keys over the
   bottom-left of the map can be turned on in the *More* menu;
 * when the game asks for something, a tap does the obvious thing: it
   continues after a message, picks the item tapped in the list on the

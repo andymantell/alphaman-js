@@ -269,17 +269,16 @@
   }
   // Running: a flick (a quick swipe) keeps walking that way until something
   // happens: a message or prompt, damage, a bump, a new area, a creature
-  // coming into view or close, or another touch.
+  // coming within range or close (even an invisible one), or another touch.
   const FLICK_MS = 300, FLICK_PX = 40, RUN_MAX = 80;
   let run = null;   // { key, x, y, area, lpoint, hits, seen, steps, next }
-  function visibleCreatures() {
+  // Creatures in range, shown or not (an invisible one may need fighting).
+  function nearbyCreatures() {
     let n = 0, near = false;
     for (let j = 1; j <= nnear; j++) {
       const c = ncre[j];
       const dx = c[4], dy = c[5], x = localx + dx, y = localy + dy;
-      if (x < 1 || x > 52 || y < 1 || y > 22) continue;
-      const cell = SCR.getCell(1, x, y), sym = c[7] % 1000;
-      if ((cell & 255) !== sym || ((cell >> 8) & 15) === 0) continue;   // not shown
+      if (x < 1 || x > 52 || y < 1 || y > 22 || c[2] <= -2000) continue;   // off the map or removed
       if (Math.max(Math.abs(dx), Math.abs(dy)) <= 8) n++;
       if (Math.max(Math.abs(dx), Math.abs(dy)) <= 2) near = true;
     }
@@ -290,11 +289,11 @@
     lpoint: lpoint, hits: hits,
   });
   function startRun(key) {
-    run = Object.assign(snapshot(), { key, seen: visibleCreatures().n, steps: 0, next: performance.now() + 160 });
+    run = Object.assign(snapshot(), { key, seen: nearbyCreatures().n, steps: 0, next: performance.now() + 160 });
   }
   function pumpRun() {
     if (!run || KB.buffer.length || performance.now() < run.next) return;
-    const now = snapshot(), v = visibleCreatures();
+    const now = snapshot(), v = nearbyCreatures();
     const stop = GameWait.kind !== 'command' ? 'prompt' : SCR.vpage !== 1 ? 'page' : now.lpoint !== run.lpoint ? 'message'
       : now.hits < run.hits ? 'hurt' : now.area !== run.area ? 'area' : run.steps > 0 && now.x === run.x && now.y === run.y ? 'bump'
       : v.near ? 'near' : v.n > run.seen ? 'seen' : ++run.steps > RUN_MAX ? 'far' : null;
