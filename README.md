@@ -234,7 +234,7 @@ or off under *Settings*):
   figure out, again, examine, mutations, search, remove trap); on the right
   stats/items (F1/F2 in one button), help, stairs, sleep and rest, then
   Esc, Enter, the keyboard, *More* and a wide space bar. The rest (previous
-  messages, the F3-F10 screens, fast fight, save, quit, wimpy critter) are
+  messages, the F3-F10 screens, fast fight, save, quit) are
   in the *More* menu, with the settings;
 * to move, touch the screen: you step in the direction of the touch from
   your character (holding keeps walking). Touching outside the map counts

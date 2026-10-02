@@ -511,7 +511,7 @@
     el('h3', { textContent: 'Game' }),
     el('div', { className: 'row' }, [mk('Fast fight on/off (F)', gameKey('F'))]),
     el('div', { className: 'row' }, [mk('Save (S)', gameKey('S')), mk('Quit (Q)', gameKey('Q'))]),
-    el('div', { className: 'row' }, [mk('Wimpy critter (W)', gameKey('W')), mk('Credits (F9)', gameKey(K.F9))]),
+    el('div', { className: 'row' }, [mk('Credits (F9)', gameKey(K.F9))]),
     el('div', { className: 'row' }, [mk('Boss key: fake DOS (F10)', gameKey(K.F10))]),
     el('h3', { textContent: 'Screen' }),
     el('div', { className: 'row' }, canFullScreen ? [fsButton] : []),
