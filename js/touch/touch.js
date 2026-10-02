@@ -50,7 +50,7 @@
   ];
   const PADKEYS = [
     [K.Home, '↖'], [K.ArrowUp, '↑'], [K.PageUp, '↗'],
-    [K.ArrowLeft, '←'], ['.', '·'], [K.ArrowRight, '→'],
+    [K.ArrowLeft, '←'], null, [K.ArrowRight, '→'],
     [K.End, '↙'], [K.ArrowDown, '↓'], [K.PageDown, '↘'],
   ];
 
@@ -111,7 +111,7 @@
   const right = el('div', { className: 'touch-side', id: 'touch-right' }, RIGHT.map((k) => makeKey(k, false)));
   playarea.prepend(left);
   playarea.append(right);
-  const pad = el('div', { id: 'touch-pad' }, PADKEYS.map(([k, l]) => makeKey([k, l, '', 'move'], true)));
+  const pad = el('div', { id: 'touch-pad' }, PADKEYS.map((k) => k ? makeKey([k[0], k[1], '', 'move'], true) : el('span')));
   screenbox.append(pad);
 
   // ---- What the game waits for.
@@ -246,7 +246,9 @@
     if (GameWait.kind !== 'command' || SCR.vpage !== 1) return null;
     const dx = col - globalThis.localx, dy = row - globalThis.localy;
     if (!dx && !dy) return null;
-    return dirKey(dx, dy);
+    // The nearest of the eight directions on screen (a square is 9 x 16).
+    const a = Math.round(Math.atan2(dy * 16, dx * 9) / (Math.PI / 4));
+    return dirKey(Math.round(Math.cos(a * Math.PI / 4)), Math.round(Math.sin(a * Math.PI / 4)));
   }
 
   screenbox.addEventListener('pointerdown', (e) => {
@@ -266,7 +268,10 @@
       return;
     }
     if (kind === 'command') {
-      if (onMap(cell) && !view3dCovers()) startHold(() => walkKey(cell.col, cell.row), true);
+      if (!onMap(cell) || view3dCovers()) return;
+      // On the main map (shown at the start), a tap goes back to the local map.
+      if (SCR.vpage === 0) send(K.F6);
+      else startHold(() => walkKey(cell.col, cell.row), true);
       return;
     }
     if (kind === 'continue' || kind === 'key') send(' ');
@@ -347,7 +352,7 @@
     el('div', { className: 'row' }, [mk('Boss key: fake DOS (F10)', gameKey(K.F10))]),
     el('h3', { textContent: 'Screen' }),
     el('div', { className: 'row' }, canFullScreen ? [fsButton] : []),
-    el('label', {}, [padBox, 'Direction pad']),
+    el('label', {}, [padBox, 'Arrow keys (otherwise tap the map to move)']),
     el('label', {}, ['Buttons ', themeSel]),
   ]);
   menu.append(
@@ -366,7 +371,7 @@
 
   modeSel.value = store.get(MODE, 'auto');
   themeSel.value = store.get(THEME, 'ega');
-  padBox.checked = store.get(PAD, 'on') === 'on';
+  padBox.checked = store.get(PAD, 'off') === 'on';   // off: tap the map to move
   modeSel.addEventListener('change', () => { store.set(MODE, modeSel.value); apply(); });
   themeSel.addEventListener('change', () => { store.set(THEME, themeSel.value); apply(); });
   padBox.addEventListener('change', () => { store.set(PAD, padBox.checked ? 'on' : 'off'); apply(); });
