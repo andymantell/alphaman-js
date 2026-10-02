@@ -13,7 +13,7 @@
     get(k, d) { try { return localStorage.getItem(k) || d; } catch (e) { return d; } },
     set(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* not kept */ } },
   };
-  const MODE = 'alphaman-touch', THEME = 'alphaman-touch-theme', PAD = 'alphaman-touch-pad';
+  const MODE = 'alphaman-touch', THEME = 'alphaman-touch-theme', PAD = 'alphaman-touch-arrows';
   const coarse = matchMedia('(pointer: coarse)');
   const isOn = () => { const m = store.get(MODE, 'auto'); return m === 'on' || (m === 'auto' && coarse.matches); };
 
@@ -385,6 +385,12 @@
     if (!on) { typeBox.classList.remove('show'); items.classList.remove('show'); strip.classList.remove('show'); }
     else showWait(GameWait.kind, GameWait.info);
     updateStart();
+  }
+  // A long press would otherwise select text or open a menu (with a buzz).
+  for (const type of ['contextmenu', 'selectstart']) {
+    document.addEventListener(type, (e) => {
+      if (document.body.classList.contains('touch') && e.target !== input) e.preventDefault();
+    }, true);
   }
   coarse.addEventListener('change', apply);
   document.addEventListener('fullscreenchange', updateStart);
