@@ -27,18 +27,26 @@
   };
   const dirKey = (dx, dy) => DIR[Math.sign(dx) + ',' + Math.sign(dy)];
 
-  // The game's commands (from its ? screen).  [key, legend, word, class]
+  // The game's commands (from its ? screen), in pairs.  [key, legend, word, class]
+  // Left: things you do with your items and abilities.
   const LEFT = [
-    ['a', 'a', 'again'], ['d', 'd', 'drop'], ['e', 'e', 'eat'], ['f', 'f', 'figure'],
-    ['m', 'm', 'mental'], ['p', 'p', 'phys'], ['r', 'r', 'trap'], ['s', 's', 'search'],
-    ['t', 't', 'throw'], ['u', 'u', 'use'], ['U', 'U', 'unuse'], ['X', 'X', 'exam'],
-    ['Z', 'Z', 'sleep'], ['<', '<', 'down'], ['>', '>', 'up'], ['.', '.', 'rest', 'move'],
+    ['u', 'u', 'use'], ['U', 'U', 'unuse'],
+    ['e', 'e', 'eat'], ['d', 'd', 'drop'],
+    ['t', 't', 'throw'], ['f', 'f', 'figure'],
+    ['a', 'a', 'again'], ['X', 'X', 'exam'],
+    ['m', 'm', 'mental'], ['p', 'p', 'phys'],
+    ['s', 's', 'search'], ['r', 'r', 'trap'],
   ];
-  // The rest of the commands are in the More menu.  'panel' switches the
-  // right of the screen between stats (F1) and items (F2).
+  // Right: what is shown, stairs and resting, then answering the game.
+  // 'panel' switches the right of the screen between stats (F1) and items
+  // (F2).  The rest of the commands are in the More menu.
   const RIGHT = [
-    ['panel', 'F1/2', 'stats/items', 'fkey'], ['P', 'P', 'msg'], ['\x1b', 'Esc', 'cancel', 'special'], ['\r', '↵', 'enter', 'special'],
-    [' ', '␣', 'space', 'move'], ['kbd', '⌨', 'type', 'special'], ['?', '?', 'help'], ['menu', '\u2261', 'more', 'special'],
+    ['panel', 'F1/2', 'items', 'fkey panel'], ['?', '?', 'help'],
+    ['<', '<', 'down'], ['>', '>', 'up'],
+    ['Z', 'Z', 'sleep'], ['.', '.', 'rest'],
+    ['\x1b', 'Esc', 'cancel', 'special'], ['\r', '\u21b5', 'enter', 'special'],
+    ['kbd', '\u2328', 'type', 'special'], ['menu', '\u2261', 'more', 'special'],
+    [' ', '\u2423', 'space', 'move wide'],
   ];
   const PADKEYS = [
     [K.Home, '↖'], [K.ArrowUp, '↑'], [K.PageUp, '↗'],
@@ -67,6 +75,10 @@
   function stopHold() { hold = null; }
   setInterval(() => {
     pumpTarget();
+    // The panel key is captioned with what it would show next.
+    const word = globalThis.rdisp === 2 ? 'stats' : 'items';
+    const cap = panelCaption();
+    if (cap && cap.textContent !== word) cap.textContent = word;
     if (!hold || performance.now() < hold.next || KB.buffer.length) return;
     const k = hold.key();
     if (k) send(k);
@@ -94,6 +106,7 @@
     return b;
   }
   const keyButtons = new Map();
+  const panelCaption = () => keyButtons.get('panel') && keyButtons.get('panel').querySelector('small');
   const left = el('div', { className: 'touch-side', id: 'touch-left' }, LEFT.map((k) => makeKey(k, false)));
   const right = el('div', { className: 'touch-side', id: 'touch-right' }, RIGHT.map((k) => makeKey(k, false)));
   playarea.prepend(left);
@@ -326,6 +339,7 @@
     el('div', { className: 'row' }, [mk('Main map (F5)', gameKey(K.F5)), mk('Local map (F6)', gameKey(K.F6))]),
     el('div', { className: 'row' }, [mk('Known berries & devices (F3)', gameKey(K.F3))]),
     el('div', { className: 'row' }, [mk('Condition (F4)', gameKey(K.F4)), mk('Symbols (F7)', gameKey(K.F7))]),
+    el('div', { className: 'row' }, [mk('Previous messages (P)', gameKey('P'))]),
     el('h3', { textContent: 'Game' }),
     el('div', { className: 'row' }, [mk('Fast fight on/off (F)', gameKey('F'))]),
     el('div', { className: 'row' }, [mk('Save (S)', gameKey('S')), mk('Quit (Q)', gameKey('Q'))]),

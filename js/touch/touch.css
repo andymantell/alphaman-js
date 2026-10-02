@@ -31,12 +31,13 @@ body.touch #screenbox { touch-action: none; }
   display: none;
   flex: none; align-self: stretch;
   width: var(--side);
-  grid-template-columns: 1fr 1fr; grid-template-rows: repeat(8, 1fr);
+  grid-template-columns: 1fr 1fr; grid-template-rows: repeat(6, 1fr);
   gap: 3px; padding: 3px;
   touch-action: none;
 }
 body.touch .touch-side { display: grid; }
-#touch-right { grid-template-rows: repeat(4, 1fr); }
+.tk.wide { grid-column: span 2; }
+.tk.panel { font-size: 12px; }
 
 /* Keys */
 .tk {
