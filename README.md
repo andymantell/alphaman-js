@@ -236,9 +236,12 @@ or off under *Settings*):
   Esc, Enter, the keyboard, *More* and a wide space bar. The rest (previous
   messages, the F3-F10 screens, fast fight, save, quit, wimpy critter) are
   in the *More* menu, with the settings;
-* to move, touch the map: you step in the direction of the touch from
-  your character (holding keeps walking). Arrow keys over the bottom-left
-  of the map can be turned on in the *More* menu;
+* to move, touch the screen: you step in the direction of the touch from
+  your character (holding keeps walking). Touching outside the map counts
+  too, so the stats or the messages are an easy target for walking east or
+  south into the next area. Dragging walks in the direction of the drag,
+  like a joystick, which is easiest at the edges. Arrow keys over the
+  bottom-left of the map can be turned on in the *More* menu;
 * when the game asks for something, a tap does the obvious thing: it
   continues after a message, picks the item tapped in the list on the
   right, moves the targeting cursor to the square tapped (tap it again to

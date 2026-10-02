@@ -70,8 +70,12 @@
   function startHold(key, repeat) {
     const k = key();
     if (k) send(k);
-    hold = repeat ? { key, next: performance.now() + 350 } : null;
+    hold = repeat ? { key, next: performance.now() + 350, sent: !!k } : null;
   }
+  // Walking by touch waits a moment before the first step, to tell a tap
+  // (one step when lifted), a hold and a drag apart.
+  const DECIDE = 150;
+  function startWalk() { hold = { key: walkKey, next: performance.now() + DECIDE, sent: false, walk: true }; }
   function stopHold() { hold = null; }
   setInterval(() => {
     pumpTarget();
@@ -81,8 +85,8 @@
     if (cap && cap.textContent !== word) cap.textContent = word;
     if (!hold || performance.now() < hold.next || KB.buffer.length) return;
     const k = hold.key();
-    if (k) send(k);
-    hold.next = performance.now() + 160;
+    hold.next = performance.now() + (hold.walk && !hold.sent ? 300 : 160);
+    if (k) { send(k); hold.sent = true; }
   }, 20);
 
   function makeKey([key, legend, word, cls], repeat) {
@@ -242,14 +246,34 @@
   }
 
   // Walking: towards the square held, one step at a time.
-  function walkKey(col, row) {
-    if (GameWait.kind !== 'command' || SCR.vpage !== 1) return null;
-    const dx = col - globalThis.localx, dy = row - globalThis.localy;
-    if (!dx && !dy) return null;
-    // The nearest of the eight directions on screen (a square is 9 x 16).
-    const a = Math.round(Math.atan2(dy * 16, dx * 9) / (Math.PI / 4));
+  // The nearest of the eight directions to a vector on the screen.
+  function dirOf(px, py) {
+    const a = Math.round(Math.atan2(py, px) / (Math.PI / 4));
     return dirKey(Math.round(Math.cos(a * Math.PI / 4)), Math.round(Math.sin(a * Math.PI / 4)));
   }
+  // Walking: while the finger is down, towards it from the character; once
+  // it has been dragged, in the direction it was dragged (like a joystick),
+  // which also works at the edges of the map.
+  const DRAG = 24;   // CSS pixels
+  let finger = null;  // { x0, y0, x, y, dragged }
+  function walkKey() {
+    if (!finger || GameWait.kind !== 'command' || SCR.vpage !== 1) return null;
+    if (finger.dragged) return dirOf(finger.x - finger.x0, finger.y - finger.y0);
+    const r = canvas.getBoundingClientRect();
+    const cx = r.left + (globalThis.localx - 0.5) * r.width / 80;
+    const cy = r.top + (globalThis.localy - 0.5) * r.height / 25;
+    const px = finger.x - cx, py = finger.y - cy;
+    if (Math.abs(px) < r.width / 160 && Math.abs(py) < r.height / 50) return null;   // on the character
+    return dirOf(px, py);
+  }
+  screenbox.addEventListener('pointermove', (e) => {
+    if (!finger || e.pointerId !== finger.id) return;
+    finger.x = e.clientX; finger.y = e.clientY;
+    if (!finger.dragged && Math.hypot(finger.x - finger.x0, finger.y - finger.y0) > DRAG) {
+      finger.dragged = true;
+      if (hold && !hold.sent) hold.next = performance.now();   // no step yet: step at once
+    }
+  });
 
   screenbox.addEventListener('pointerdown', (e) => {
     if (!document.body.classList.contains('touch') || e.target.closest('.tk')) return;
@@ -268,15 +292,21 @@
       return;
     }
     if (kind === 'command') {
-      if (!onMap(cell) || view3dCovers()) return;
+      if (view3dCovers()) return;
       // On the main map (shown at the start), a tap goes back to the local map.
-      if (SCR.vpage === 0) send(K.F6);
-      else startHold(() => walkKey(cell.col, cell.row), true);
+      if (SCR.vpage === 0) { if (onMap(cell)) send(K.F6); return; }
+      finger = { id: e.pointerId, x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY, dragged: false };
+      try { screenbox.setPointerCapture(e.pointerId); } catch (err) { /* keeps working without */ }
+      startWalk();
       return;
     }
     if (kind === 'continue' || kind === 'key') send(' ');
   });
-  const release = () => stopHold();
+  const release = () => {
+    // A tap that ended before the first step: one step.
+    if (hold && hold.walk && !hold.sent && KB.buffer.length === 0) { const k = walkKey(); if (k) send(k); }
+    stopHold(); finger = null;
+  };
   screenbox.addEventListener('pointerup', release);
   screenbox.addEventListener('pointercancel', release);
 
