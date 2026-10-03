@@ -25,14 +25,14 @@ jobs:
         with:
           node-version: 22
 
-      - name: Install Playwright and Chromium
+      # Both at once: a second npm install would remove the first.
+      - name: Install Playwright, Chromium and eslint
         run: |
-          npm install --no-save --no-package-lock playwright@1
+          npm install --no-save --no-package-lock playwright@1 eslint@10
           npx playwright install --with-deps chromium
 
       - name: Lint and async checks
         run: |
-          npm install --no-save --no-package-lock eslint@10
           node tools/lint.mjs
           node tools/check-async.mjs
 
