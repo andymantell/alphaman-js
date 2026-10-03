@@ -251,28 +251,50 @@ async function run(browser, layout, width, height) {
   s = await settle(page);
   check(layout, 'back to the map afterwards', s.split === upright && s.vpage <= 1, JSON.stringify(s));
 
-  // Walking: on the local map, a tap beyond a free neighbouring square.
+  // Walking.  A tap sends one step towards it from the character; what is
+  // checked first is the key sent, which does not depend on the terrain,
+  // then the move itself where the square is free.
   if (s.vpage === 0) { await tapCell(page, 20, 10); await wait(page, 600); s = await settle(page); }
-  const step = await freeStep(page);
-  if (step) {
-    const from = await state(page);
-    const tx = Math.min(51, Math.max(2, from.x + step[0] * 6)), ty = Math.min(21, Math.max(2, from.y + step[1] * 6));
-    await tapCell(page, tx, ty);
+  const ARROW = { '1,0': '\0M', '-1,0': '\0K', '0,1': '\0P', '0,-1': '\0H' };
+  const open = (dx, dy) => page.evaluate(([dx, dy]) => {
+    const x = localx + dx, y = localy + dy;
+    return x >= 2 && x <= 51 && y >= 2 && y <= 21 &&
+      [32, 46, 250, 249, 44, 39, 96].includes(SCR.getCell(1, x, y) & 255) && [32, 46, 250, 249, 44, 39, 96, 0].includes(SCR.getCell(2, x, y) & 255);
+  }, [dx, dy]);
+  async function tapWalk(what, point, dir) {
+    const from = await settle(page), free = await open(...dir);
+    await recordKeys(page);
+    await page.touchscreen.tap(point.x, point.y);
     await wait(page, 500);
+    const keys = await sentKeys(page);
+    check(layout, `${what}: sends ${['east', 'west', 'south', 'north'][['1,0', '-1,0', '0,1', '0,-1'].indexOf(dir.join())]}`,
+      keys.length === 1 && keys[0] === ARROW[dir.join()], JSON.stringify(keys));
     const to = await settle(page);
-    check(layout, `a tap walks one square (${step})`, to.x === from.x + step[0] && to.y === from.y + step[1], `${from.x},${from.y} -> ${to.x},${to.y}`);
-  } else {
-    check(layout, 'a tap walks one square', true, 'no free square next to the character: skipped');
+    if (free) check(layout, `${what}: walks there`, to.x === from.x + dir[0] && to.y === from.y + dir[1], `${from.x},${from.y} -> ${to.x},${to.y}`);
   }
-  // Below the map (the messages, and upright the panel) is south.
-  const before = await state(page);
-  const southFree = await page.evaluate(() => [32, 46, 250, 249, 44, 39, 96].includes(SCR.getCell(1, localx, localy + 1) & 255) && localy < 20);
-  if (southFree) {
-    const p = await page.evaluate((x) => AlphaManTouch.whereIs(Math.min(52, x), 24), before.x);
-    await page.touchscreen.tap(p.x, p.y);
-    await wait(page, 500);
-    const after = await settle(page);
-    check(layout, 'a tap under the map walks south', after.y === before.y + 1, `${before.y} -> ${after.y}`);
+  const where = (col, row) => page.evaluate(([c, r]) => AlphaManTouch.whereIs(c, r), [col, row]);
+  // On the map, a few squares away in each direction (where the map allows).
+  for (const dir of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+    const at = await state(page);
+    const tx = at.x + dir[0] * 4, ty = at.y + dir[1] * 4;
+    if (tx < 1 || tx > 52 || ty < 1 || ty > 22) continue;
+    await tapWalk(`a tap on the map (${dir})`, await where(tx, ty), dir);
+  }
+  // Under the map, straight below the character: the messages are south.
+  let at = await state(page);
+  await tapWalk('a tap on the messages below', await where(Math.min(at.x, 54), 24), [0, 1]);
+  // The panel: under the map upright (south), right of it sideways (east).
+  at = await state(page);
+  if (upright) {
+    const lines = await page.evaluate(() => AlphaManTouch.panelLines());
+    const r = await page.$eval('#pm-panel', (c) => { const b = c.getBoundingClientRect(); return { top: b.top, height: b.height }; });
+    const cx = (await page.evaluate(() => AlphaManTouch.whereIs(localx, localy))).x;
+    check(layout, 'the panel has lines to tap', lines.length > 0);
+    // (In the middle: near its bottom edge, a tap is taken as one on the
+    // key just under it, as phones do.)
+    await tapWalk('a tap on the panel below', { x: cx, y: r.top + r.height / 2 }, [0, 1]);
+  } else {
+    await tapWalk('a tap on the panel to the right', await where(70, at.y), [1, 0]);
   }
 
   check(layout, 'no script errors', errors.length === 0, errors.join(' | '));

@@ -295,7 +295,9 @@ Developer tools:
   Chromium, sideways and upright: everything the panel on the right shows,
   the inventory popup, picking items, the answer buttons, whole-screen
   pages, walking by touch, and that the upright layout copies the game
-  screen exactly (needs playwright and its Chromium)
+  screen exactly (needs playwright and its Chromium). GitHub runs it on
+  every push (the *Touch control tests* workflow), separately from the
+  deploy, so for now a failure does not stop the site being published
 * `node tools/check-for-bounds.mjs` - finds `for` loops whose end value can
   change inside the loop (QuickBasic evaluates it only once)
 
