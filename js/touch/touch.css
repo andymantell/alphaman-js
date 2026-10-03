@@ -303,7 +303,7 @@ body.kb3d .tk { margin: 1px; }
 body.kb3d #touch-answers { left: 50%; right: auto; transform: translateX(-50%); width: max-content; max-width: 96vw;
   padding: 6px; gap: 0; border-radius: 7px; }
 body.kb3d #touch-answers .tk.word { min-width: 44px; padding: 0 12px 4px; }
-body.kb3d #touch-popup { padding: 6px; gap: 0; border-radius: 7px; }
+body.kb3d #touch-popup { padding: 6px; gap: 0; border: 0; border-radius: 7px; }
 body.kb3d #touch-popup p { padding: 3px 6px 4px; margin: 0; }
 @media (orientation: landscape) { body.kb3d #touch-popup { width: max-content; max-width: min(58%, 340px); } }
 
@@ -314,13 +314,16 @@ body.kb3d .kb3d-drawn .tk.down { transform: none; filter: none; }
 body.kb3d #touch-answers.kb3d-drawn { filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.7)); }
 body.kb3d #touch-popup.kb3d-drawn { background-color: transparent; border-color: transparent; box-shadow: none; filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.8)); }
 body.kb3d #touch-popup.kb3d-drawn p { color: var(--mm-legend); font-weight: 600; }
-/* Pressed, and the glow for Space / Enter: on the cap itself. */
+/* The glow for Space: on the cap itself. */
 body.kb3d .kb3d-drawn .tk::before {
   content: ''; position: absolute; pointer-events: none;
   left: 3px; right: 3px; top: calc(var(--cap-y, 0px) + 2px); height: calc(var(--cap-h, 100%) - 4px);
   border-radius: 5px;
 }
-body.kb3d .kb3d-drawn .tk.down::before { background: rgba(0, 0, 0, 0.16); }
+/* A pressed key moves in 3D (keyboard3d.js draws it on a canvas over the
+   picture, under the buttons). */
+body.kb3d :is(#touch-top, #touch-bottom, #touch-left, #touch-right) { position: relative; }
+body.kb3d .kb3d-press { position: absolute; pointer-events: none; }
 body.kb3d .kb3d-drawn .tk.glow::before { box-shadow: 0 0 0 2px #55ffff, 0 0 12px #55ffff; }
 
 /* Legends on the cap tops. */

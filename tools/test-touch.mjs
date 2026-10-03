@@ -181,6 +181,18 @@ async function run(browser, layout, width, height) {
     const order = await page.$$eval(`#${holder} .tk`, (b) => b.map((x) => x.dataset.k));
     const grey = (id) => caps[order.indexOf(id)].grey;
     check(layout, 'drawn Esc grey, F keys light', grey('esc') && !grey('F3') && !grey('F5'), JSON.stringify(order));
+    // A held key goes down in 3D (a canvas over the picture) and its legend
+    // with it; let go, it springs back and the canvas goes.
+    const pressed = (on) => page.evaluate((on) => {
+      const b = document.querySelector('.tk[data-k=S]');
+      if (on !== null) b.classList.toggle('down', on);
+      return { canvases: document.querySelectorAll('.kb3d-press').length, shift: parseFloat((b.style.translate || '0 0').split(' ')[1]) || 0 };
+    }, on);
+    await pressed(true); await wait(page, 300);
+    const held = await pressed(null);
+    await pressed(false); await wait(page, 700);
+    const back = await pressed(null);
+    check(layout, 'a held key goes down, and comes back up', held.canvases === 1 && held.shift > 2 && back.canvases === 0 && back.shift === 0, JSON.stringify([held, back]));
   }
   await page.tap('#touch-answers .tk >> text="N"');
   s = await settle(page);

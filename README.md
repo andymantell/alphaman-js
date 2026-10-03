@@ -234,7 +234,8 @@ or off under *Settings*):
   the answer buttons and item popup, is drawn once with three.js from a
   real Model M keycap (`js/touch/keyboard3d.js`, `js/touch/keycap.json`)
   and the buttons sit on top of the picture; it is drawn again only when
-  a group changes size or its keys change. Caps are never narrower than
+  a group changes size or its keys change. A key being pressed goes down
+  and springs back up, drawn in 3D just around it. Caps are never narrower than
   they are tall, so sideways they are small squares with each key's name
   printed on the case below. Without WebGL the keys are drawn in CSS
   instead. Sideways they are in

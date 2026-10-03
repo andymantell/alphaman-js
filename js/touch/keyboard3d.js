@@ -7,7 +7,9 @@
 // stretched to each key, in dark wells cut in a textured case, lit and
 // shadowed.  The picture becomes the group's background and the HTML buttons
 // stay on top of it with their legends, so taps work exactly as before.  It is
-// drawn again only when a group changes size or its keys change.
+// drawn again only when a group changes size or its keys change.  The scene is
+// kept, and a key being pressed is drawn moving: the cap travels down and
+// springs back, drawn just around the key on a small canvas over the picture.
 //
 // Nothing here runs on the desktop page.  If WebGL or three.js is missing,
 // the keys keep their CSS look (body.kb3d is never set).
@@ -31,6 +33,7 @@ const CHIPS = ['touch-answers', 'touch-popup', 'touch-pad'];
 
 let renderer = null, keycap = null, envMap = null;
 const cache = new Map();    // drawing signature -> picture URL
+const TRAVEL = 0.0035;      // how far a cap goes down (metres; a Model M's is about 3.8 mm)
 
 async function setup() {
   const url = new URL('keycap.json' + new URL(import.meta.url).search, import.meta.url);
@@ -67,9 +70,14 @@ function canvas2d(w, h) {
   return [c, c.getContext('2d')];
 }
 
-// Draws one group: W x H page pixels, caps as {x, y, w, h, grey} within it.
-// A chip has rounded corners and nothing outside them.
-function draw(W, H, keys, chip, dpr) {
+// The same grain every time, so a scene built again matches its picture.
+function seeded(seed) {
+  return () => { seed = (seed + 0x6d2b79f5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+}
+
+// Builds one group's scene: W x H page pixels, caps as {x, y, w, h, grey}
+// within it.  A chip has rounded corners and nothing outside them.
+function build(W, H, keys, chip, dpr) {
   const k = keycap.w / Math.min(...keys.map((key) => Math.min(key.w, key.h)));   // metres per page pixel
   const toX = (px) => (px - W / 2) * k, toZ = (py) => (py - H / 2) * k;
   const disposables = [];
@@ -102,7 +110,8 @@ function draw(W, H, keys, chip, dpr) {
   const [bc, bx] = canvas2d(cw, ch);
   bx.filter = `blur(${LOOK.lip * TS}px)`; bx.drawImage(mc, 0, 0);
   const [nc, nx] = canvas2d(cw, ch), nd = nx.createImageData(cw, ch);
-  for (let i = 0; i < nd.data.length; i += 4) { const v = Math.random() * 255; nd.data[i] = nd.data[i + 1] = nd.data[i + 2] = v; nd.data[i + 3] = 255; }
+  const rnd = seeded(1987);
+  for (let i = 0; i < nd.data.length; i += 4) { const v = rnd() * 255; nd.data[i] = nd.data[i + 1] = nd.data[i + 2] = v; nd.data[i + 3] = 255; }
   nx.putImageData(nd, 0, 0);
   bx.globalAlpha = LOOK.grain; bx.filter = `blur(${LOOK.grainBlur * TS}px)`; bx.drawImage(nc, 0, 0);
   const caseMat = keep(new THREE.MeshStandardMaterial({ color: LOOK.caseColour, roughness: 0.9 }));
@@ -128,14 +137,17 @@ function draw(W, H, keys, chip, dpr) {
     cream: { skirt: keep(new THREE.MeshStandardMaterial({ color: LOOK.cream.skirt, roughness: 0.55 })), top: keep(new THREE.MeshStandardMaterial({ color: LOOK.cream.top, roughness: 0.8 })) },
     grey: { skirt: keep(new THREE.MeshStandardMaterial({ color: LOOK.grey, roughness: 0.55 })), top: keep(new THREE.MeshStandardMaterial({ color: LOOK.grey, roughness: 0.8 })) },
   };
-  for (const key of keys) {
+  const caps = keys.map((key) => {
+    const cap = new THREE.Group();
+    cap.position.set(toX(key.x + key.w / 2), FLOOR_Y + 0.003, toZ(key.y + key.h / 2));
     for (const part of ['skirt', 'top']) {
       const mesh = new THREE.Mesh(keep(stretch(keycap[part], (key.w - 2 * LOOK.inset) * k, (key.h - 2 * LOOK.inset) * k)), mats[key.grey ? 'grey' : 'cream'][part]);
-      mesh.position.set(toX(key.x + key.w / 2), FLOOR_Y + 0.003, toZ(key.y + key.h / 2));
       mesh.castShadow = mesh.receiveShadow = true;
-      world.add(mesh);
+      cap.add(mesh);
     }
-  }
+    world.add(cap);
+    return cap;
+  });
 
   // Seen a little from the front, as from a chair.  Stretching the scene front
   // to back by 1 / sin(view) keeps the plate exactly over the buttons.
@@ -152,11 +164,19 @@ function draw(W, H, keys, chip, dpr) {
   sun.shadow.mapSize.set(2048, 2048); sun.shadow.bias = -0.0002; sun.shadow.radius = 3;
   scene.add(sun, sun.target);
 
-  renderer.setPixelRatio(dpr); renderer.setSize(W, H, false);
-  renderer.render(scene, cam);
-  sun.dispose();
-  for (const x of disposables) x.dispose();
-  return renderer.domElement.toDataURL('image/png');
+  // How far down the page a cap's top moves for each metre it goes down.
+  const pxPerDepth = Math.cos(el) / k;
+  return { W, H, dpr, scene, cam, caps, keys, pxPerDepth, rest: FLOOR_Y + 0.003,
+    dispose() { sun.dispose(); for (const x of disposables) x.dispose(); } };
+}
+
+// Renders the whole group (for its picture), or only the part x, y, w, h.
+function render(st, part) {
+  renderer.setPixelRatio(st.dpr);
+  if (part) { st.cam.setViewOffset(st.W, st.H, part.x, part.y, part.w, part.h); renderer.setSize(part.w, part.h, false); }
+  else { st.cam.clearViewOffset(); renderer.setSize(st.W, st.H, false); }
+  renderer.render(st.scene, st.cam);
+  return renderer.domElement;
 }
 
 // ---- Which groups to draw, and when.
@@ -169,7 +189,8 @@ function measure(holder) {
   for (const b of holder.querySelectorAll('.tk')) {
     const q = b.getBoundingClientRect();
     if (q.width < 2) continue;
-    keys.push({ b, x: round(q.left - r.left), y: round(q.top - r.top), w: round(q.width), h: round(q.height),
+    const shift = pressShift.get(b) || 0;   // a pressed key's legend moves down with its cap
+    keys.push({ b, x: round(q.left - r.left), y: round(q.top - r.top - shift), w: round(q.width), h: round(q.height),
       grey: b.classList.contains('special') || b.classList.contains('arrow') });
   }
   if (!keys.length) return null;
@@ -184,7 +205,7 @@ function measure(holder) {
     b.style.setProperty('--cap-y', dy + 'px'); b.style.setProperty('--cap-h', h + 'px'); b.style.setProperty('--cap-b', (k.h - h - dy) + 'px');
     return { ...k, y: k.y + dy, h };
   });
-  return { W: round(r.width), H: round(r.height), caps };
+  return { W: round(r.width), H: round(r.height), caps, buttons: keys.map((k) => k.b) };
 }
 const round = (v) => Math.round(v * 4) / 4;
 
@@ -205,11 +226,17 @@ function flush() {
       const m = measure(holder);
       if (!m) continue;
       const dpr = Math.min(window.devicePixelRatio || 1, 3);
-      const sig = JSON.stringify([m, dpr, holder.id]);
-      if (holder.dataset.kb3d === sig) continue;
+      const { buttons, ...drawn } = m;
+      const sig = JSON.stringify([drawn, dpr, holder.id]);
+      if (holder.dataset.kb3d === sig) { live.get(holder).buttons = buttons; continue; }
+      endPresses(holder);
+      live.get(holder)?.dispose();
+      const st = build(m.W, m.H, m.caps, isChip(holder.id), dpr);
+      st.buttons = buttons;
+      live.set(holder, st);
       let url = cache.get(sig);
       if (!url) {
-        url = draw(m.W, m.H, m.caps, isChip(holder.id), dpr);
+        url = render(st).toDataURL('image/png');
         cache.set(sig, url);
         if (cache.size > 24) cache.delete(cache.keys().next().value);
       }
@@ -223,6 +250,81 @@ function flush() {
   }
 }
 
+// ---- Pressing a key: the cap goes down while it is held and springs back
+// when let go.  touch.js marks a held key with the class "down".
+const live = new Map();         // holder -> its scene
+const pressShift = new WeakMap();   // button -> px its legend is moved down
+const moving = new Map();       // button -> { holder, p, v, target, canvas }
+let ticking = false, last = 0;
+
+function presses(holder, records) {
+  for (const r of records) {
+    const b = r.target;
+    if (r.type !== 'attributes' || !b.classList || !b.classList.contains('tk')) continue;
+    const down = b.classList.contains('down');
+    const a = moving.get(b);
+    if (down && !a) moving.set(b, { holder, p: 0, v: 0, target: 1, canvas: null });
+    else if (a) a.target = down ? 1 : 0;
+  }
+  if (moving.size && !ticking) { ticking = true; last = performance.now(); requestAnimationFrame(tick); }
+}
+
+function endPresses(holder) {
+  for (const [b, a] of moving) {
+    if (a.holder !== holder) continue;
+    a.canvas?.remove(); b.style.translate = ''; pressShift.delete(b); moving.delete(b);
+  }
+}
+
+function tick(now) {
+  const dt = Math.min(0.033, (now - last) / 1000); last = now;
+  // Springs: quick and firm going down, a little bounce coming back up.
+  for (const a of moving.values()) {
+    const [k, c] = a.target ? [2200, 84] : [900, 33];
+    for (let t = 0; t < dt; t += 0.004) {
+      const h = Math.min(0.004, dt - t);
+      a.v += (k * (a.target - a.p) - c * a.v) * h; a.p += a.v * h;
+      if (a.target && a.p > 1) { a.p = 1; a.v = 0; }   // bottomed out
+    }
+  }
+  const byHolder = new Map();
+  for (const [b, a] of moving) {
+    const st = live.get(a.holder), i = st ? st.buttons.indexOf(b) : -1;
+    if (i < 0) { a.canvas?.remove(); b.style.translate = ''; pressShift.delete(b); moving.delete(b); continue; }
+    st.caps[i].position.y = st.rest - a.p * TRAVEL;
+    const shift = Math.round(a.p * TRAVEL * st.pxPerDepth * 100) / 100;
+    pressShift.set(b, shift); b.style.translate = `0 ${shift}px`;
+    if (!byHolder.has(a.holder)) byHolder.set(a.holder, []);
+    byHolder.get(a.holder).push([b, a, st.keys[i]]);
+  }
+  for (const [holder, list] of byHolder) {
+    const st = live.get(holder);
+    for (const [, a, key] of list) {
+      // The key and a little round it (its shadow on its neighbours).
+      const pad = 6, x = Math.max(0, Math.floor(key.x - pad)), y = Math.max(0, Math.floor(key.y - pad));
+      const part = { x, y, w: Math.min(st.W, Math.ceil(key.x + key.w + pad)) - x, h: Math.min(st.H, Math.ceil(key.y + key.h + pad)) - y };
+      if (!a.canvas) {
+        a.canvas = document.createElement('canvas'); a.canvas.className = 'kb3d-press';
+        holder.prepend(a.canvas);
+      }
+      const cv = a.canvas, pw = Math.round(part.w * st.dpr), ph = Math.round(part.h * st.dpr);
+      if (cv.width !== pw || cv.height !== ph) { cv.width = pw; cv.height = ph; }
+      Object.assign(cv.style, { left: part.x + 'px', top: part.y + 'px', width: part.w + 'px', height: part.h + 'px' });
+      const src = render(st, part);
+      const g = cv.getContext('2d'); g.clearRect(0, 0, pw, ph); g.drawImage(src, 0, 0, pw, ph);
+    }
+  }
+  // Back at rest: the picture underneath is the same, so the canvas goes.
+  for (const [b, a] of moving) {
+    if (a.target === 0 && Math.abs(a.p) < 0.002 && Math.abs(a.v) < 0.05) {
+      const st = live.get(a.holder), i = st.buttons.indexOf(b);
+      if (i >= 0) st.caps[i].position.y = st.rest;
+      a.canvas?.remove(); b.style.translate = ''; pressShift.delete(b); moving.delete(b);
+    }
+  }
+  if (moving.size) requestAnimationFrame(tick); else ticking = false;
+}
+
 let watching = false;
 function start() {
   if (watching) return;
@@ -232,7 +334,7 @@ function start() {
     const holder = document.getElementById(id);
     if (!holder) continue;
     new ResizeObserver(() => schedule(holder)).observe(holder);
-    new MutationObserver(() => schedule(holder)).observe(holder, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['class', 'hidden'] });
+    new MutationObserver((records) => { presses(holder, records); schedule(holder); }).observe(holder, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['class', 'hidden'] });
     schedule(holder);
   }
 }
@@ -241,6 +343,7 @@ function stop() {
   for (const id of [...MAIN, ...CHIPS]) {
     const holder = document.getElementById(id);
     if (!holder) continue;
+    endPresses(holder);
     holder.style.backgroundImage = ''; holder.classList.remove('kb3d-drawn'); delete holder.dataset.kb3d;
   }
   failed = true;
