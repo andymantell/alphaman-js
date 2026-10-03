@@ -229,8 +229,8 @@ view is off, so the 2D game plays exactly as before.
 On a touch screen the game gets touch controls (they can also be turned on
 or off under *Settings*):
 
-* the everyday commands as IBM Model M keys (light keys, with Esc, Enter,
-  More and the arrows grey, in a textured case). Each group of keys, and
+* the everyday commands as IBM Model M keys (light keys, with Esc and
+  More grey, in a textured case). Each group of keys, and
   the answer buttons and item popup, is drawn once with three.js from a
   real Model M keycap (`js/touch/keyboard3d.js`, `js/touch/keycap.json`)
   and the buttons sit on top of the picture; it is drawn again only when
@@ -241,12 +241,13 @@ or off under *Settings*):
   columns either side of the screen: on the left Esc, known berries and
   devices (F3), your condition (F4), the main map (F5), *i* (inventory /
   stats), again, search, the mutations, remove trap, save and rest; on the
-  right the stairs, help, sleep, *More*, and Space and Enter side by side.
+  right the stairs, help, sleep, *More* and Space.
   Upright, Esc, F3, F4, F5, help and *More* are in a row above the screen,
   laid out like the top of the keyboard,
   and right under the screen (kept low, near the thumbs) is a keyboard of
-  the other commands, six across, with the stairs, then Space and Enter
-  along the bottom; walking is by tapping and swiping the map. The rest
+  the other commands, six across, with the stairs, then the space bar
+  along the bottom. There is no Enter key: when the game asks for a
+  target, a *Fire* button appears (or tap the cursor's square again); walking is by tapping and swiping the map. The rest
   (previous messages, local map, symbols, fast fight, credits, the boss
   key) are in the *More* menu, with the settings;
 * *i* shows your items on the right of the screen (and again goes back to

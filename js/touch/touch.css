@@ -42,6 +42,7 @@ body.touch .touch-side { display: grid; }
 .tk.wide3 { grid-column: span 3; }
 .tk.wide4 { grid-column: span 4; }
 .tk.wide5 { grid-column: span 5; }
+.tk.wide6 { grid-column: span 6; }
 .tk.tall { grid-row: span 3; }   /* Space and Enter, side by side */
 .tk.arrow { font-size: 22px; }
 /* The upright layout's key rows (above and below the screen). */

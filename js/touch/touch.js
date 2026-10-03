@@ -37,7 +37,7 @@
     r: ['r', 'r', 'trap'], S: ['S', 'S', 'save', 'fkey'], rest: ['.', '.', 'rest'], Z: ['Z', 'Z', 'sleep'],
     down: ['<', '<', 'down'], up: ['>', '>', 'up'],
     esc: ['\x1b', 'Esc', 'cancel', 'special'], help: ['?', '?', 'help'], more: ['menu', '\u2261', 'more', 'special'],
-    enter: ['\r', '\u21b5', 'enter', 'special'], space: [' ', '\u2423', 'space', 'move'],
+    space: [' ', '\u2423', 'space', 'move'],
     // The direction keys of the upright keyboard (held: keep walking).
     nw: [K.Home, '\u2196', '', 'move arrow'], n: [K.ArrowUp, '\u2191', '', 'move arrow'], ne: [K.PageUp, '\u2197', '', 'move arrow'],
     w: [K.ArrowLeft, '\u2190', '', 'move arrow'], e: [K.ArrowRight, '\u2192', '', 'move arrow'],
@@ -54,14 +54,16 @@
     sideways: {
       // Esc and the F keys at the top left, as on the keyboard.
       left: ['esc', 'F3', 'F4', 'F5', 'inv', 'a', 's', 'm', 'p', 'r', 'S', 'rest'],
-      right: ['down', 'up', 'help', 'Z', ['more', 'wide'], ['space', 'tall'], ['enter', 'tall']],
+      // (Rows as on the left, the last two empty.)
+      right: ['down', 'up', 'help', 'Z', ['more', 'wide'], ['space', 'wide'], '', '', '', ''],
     },
     upright: {
       // Esc on its own, then the F keys in groups, then help and More.
       top: ['esc', '', 'F3', 'F4', '', 'F5', '', 'help', 'more'],
       // Commands below the screen (walk by tapping or swiping the map): six
-      // across, the stairs apart, then Space and Enter.
-      bottom: ['inv', 'a', 's', 'm', 'p', 'r', 'S', 'rest', 'Z', '', 'down', 'up', ['space', 'wide5'], 'enter'],
+      // across, the stairs apart, then the space bar.  No Enter: a target
+      // is fired at with the Fire answer button (or a second tap on it).
+      bottom: ['inv', 'a', 's', 'm', 'p', 'r', 'S', 'rest', 'Z', '', 'down', 'up', ['space', 'wide6']],
     },
   };
 
@@ -170,9 +172,7 @@
   const cellPct = (col, row) => ({ left: (col - 1) * 100 / 80 + '%', top: (row - 1) * 100 / 25 + '%' });
   function showWait(kind, info) {
     if (!document.body.classList.contains('touch')) return;
-    for (const k of ['space', 'enter']) keyButtons.get(k).classList.remove('glow');
-    if (kind === 'continue') keyButtons.get('space').classList.add('glow');
-    if (kind === 'target') keyButtons.get('enter').classList.add('glow');
+    keyButtons.get('space').classList.toggle('glow', kind === 'continue');
     if (kind === 'text') {
       Object.assign(typeBox.style, cellPct(info.col, info.row), { width: (81 - info.col) * 100 / 80 + '%' });
       Object.assign(input.style, cellPct(info.col, info.row));
@@ -216,6 +216,7 @@
     if (!document.body.classList.contains('touch') || kind === null) return;
     if (kind === 'choice') showAnswers(info.keys);
     else if (kind === 'text' && info.numeric) showAnswers(NUMPAD);
+    else if (kind === 'target') showAnswers([['\r', 'Fire']]);   // Enter: at the cursor
     else answers.classList.remove('show');
   });
 

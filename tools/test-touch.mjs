@@ -198,12 +198,12 @@ async function run(browser, layout, width, height) {
     const at = (id) => { const b = document.querySelector(`.tk[data-k="${id}"]`); return b && b.isConnected && b.getBoundingClientRect().height > 0 ? b.parentElement.id : null; };
     const screenBox = document.getElementById('viewport').getBoundingClientRect();
     const top = document.getElementById('touch-top').getBoundingClientRect();
-    const space = document.querySelector('.tk[data-k=space]').getBoundingClientRect(), enter = document.querySelector('.tk[data-k=enter]').getBoundingClientRect();
+    const space = document.querySelector('.tk[data-k=space]').getBoundingClientRect(), holder = document.querySelector('.tk[data-k=space]').parentElement.getBoundingClientRect();
     return {
       ids: Object.fromEntries(['inv', 'F5', 'F3', 'F4', 'help', 'esc', 'more', 'n', 'so', 'e', 'w', 'a', 'S', 'down', 'space', 'enter'].map((id) => [id, at(id)])),
+      spaceBar: space.height > 0 && holder.width - space.width < 12,
       topAbove: top.height > 0 && top.bottom <= screenBox.top + 1,
       screenOnKeys: Math.abs(document.getElementById('touch-bottom').getBoundingClientRect().top - screenBox.bottom) < 1.5,
-      spaceEnterLine: Math.abs(space.top - enter.top) < 2 && space.height > 0,
       typeKey: !!document.querySelector('.tk[data-k=kbd]'),
     };
   });
@@ -214,7 +214,7 @@ async function run(browser, layout, width, height) {
     const first = (holder) => document.querySelector(`#${holder} .tk`);
     return {
       escFirst: [first('touch-top'), first('touch-left')].includes(k('esc')),
-      fLight: src('F3') === src('a'), escGrey: src('esc') !== src('F3') && src('esc') === src('enter'),
+      fLight: src('F3') === src('a'), escGrey: src('esc') !== src('F3') && src('esc') === src('more'),
       font: document.fonts.check("15px 'Varela Round'"),
       drawn: !!document.querySelector('.kb3d-drawn .tk[data-k=esc]'),
     };
@@ -225,13 +225,14 @@ async function run(browser, layout, width, height) {
   check(layout, 'legend font loaded', look.font);
   if (upright) {
     check(layout, 'F keys, help, Esc and More above the screen', keys.topAbove && ['F5', 'F3', 'F4', 'help', 'esc', 'more'].every((k) => keys.ids[k] === 'touch-top'), JSON.stringify(keys.ids));
-    check(layout, 'commands below the screen', ['inv', 'a', 'S', 'down', 'space', 'enter'].every((k) => keys.ids[k] === 'touch-bottom'), JSON.stringify(keys.ids));
+    check(layout, 'commands below the screen', ['inv', 'a', 'S', 'down', 'space'].every((k) => keys.ids[k] === 'touch-bottom'), JSON.stringify(keys.ids));
     check(layout, 'the screen sits low, right on the keys', keys.screenOnKeys);
   } else {
-    check(layout, 'keys either side of the screen', ['esc', 'F3', 'F4', 'F5', 'inv'].every((k) => keys.ids[k] === 'touch-left') && ['help', 'more', 'space', 'enter'].every((k) => keys.ids[k] === 'touch-right'), JSON.stringify(keys.ids));
+    check(layout, 'keys either side of the screen', ['esc', 'F3', 'F4', 'F5', 'inv'].every((k) => keys.ids[k] === 'touch-left') && ['help', 'more', 'space'].every((k) => keys.ids[k] === 'touch-right'), JSON.stringify(keys.ids));
   }
   check(layout, 'no direction keys (taps and swipes instead)', !keys.ids.n && !keys.ids.so && !keys.ids.e && !keys.ids.w);
-  check(layout, 'Space and Enter on one line', keys.spaceEnterLine);
+  check(layout, 'Space is a bar across its keys', keys.spaceBar);
+  check(layout, 'no Enter key (Fire instead, when aiming)', !keys.ids.enter);
   check(layout, 'no type key', !keys.typeKey);
 
   // Stats panel.
@@ -402,6 +403,30 @@ async function run(browser, layout, width, height) {
     await tapWalk('a tap on the panel below', { x: cx, y: r.top + r.height / 2 }, [0, 1]);
   } else {
     await tapWalk('a tap on the panel to the right', await where(70, at.y), [1, 0]);
+  }
+
+  // Aiming (throwing an item): a Fire button, which fires (Enter).
+  s = await settle(page);
+  let aimed = false;
+  for (const item of 'abcdefg') {
+    await page.evaluate(() => KB.push('t'));
+    await wait(page, 300);
+    if ((await state(page)).kind !== 'item') { await settle(page); continue; }
+    await page.evaluate((k) => KB.push(k), item);
+    await wait(page, 300);
+    if ((await state(page)).kind === 'target') { aimed = true; break; }
+    await settle(page);
+  }
+  if (!aimed) console.log(`skip [${layout}] Fire button: nothing to throw`);
+  else {
+    const fire = await page.$$eval('#touch-answers.show .tk', (b) => b.map((x) => x.textContent));
+    check(layout, 'aiming shows a Fire button', fire.join() === 'Fire', JSON.stringify(fire));
+    await recordKeys(page);
+    await page.tap('#touch-answers .tk >> text="Fire"');
+    await wait(page, 400);
+    const sent = await sentKeys(page);
+    check(layout, 'Fire sends Enter and the throw happens', sent[0] === '\r' && (await state(page)).kind !== 'target', JSON.stringify(sent));
+    await settle(page);
   }
 
   check(layout, 'no script errors', errors.length === 0, errors.join(' | '));
