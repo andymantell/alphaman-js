@@ -163,11 +163,25 @@ async function run(browser, layout, width, height) {
       typeKey: !!document.querySelector('.tk[data-k=kbd]'),
     };
   });
+  // As on the keyboard: Esc first, F keys light, Esc and arrows grey.
+  const look = await page.evaluate(() => {
+    const k = (id) => document.querySelector(`.tk[data-k="${id}"]`);
+    const src = (id) => getComputedStyle(k(id)).borderImageSource;
+    const first = (holder) => document.querySelector(`#${holder} .tk`);
+    return {
+      escFirst: [first('touch-top'), first('touch-left')].includes(k('esc')),
+      fLight: src('F3') === src('a'), escGrey: src('esc') !== src('F3') && src('esc') === src('enter'),
+      font: document.fonts.check("15px 'Varela Round'"),
+    };
+  });
+  check(layout, 'Esc comes first, as on the keyboard', look.escFirst);
+  check(layout, 'F keys light, Esc and Enter grey', look.fLight && look.escGrey, JSON.stringify(look));
+  check(layout, 'legend font loaded', look.font);
   if (upright) {
     check(layout, 'F keys, help, Esc and More above the screen', keys.topAbove && ['F5', 'F3', 'F4', 'help', 'esc', 'more'].every((k) => keys.ids[k] === 'touch-top'), JSON.stringify(keys.ids));
     check(layout, 'direction keys and commands below the screen', ['n', 'so', 'e', 'w', 'inv', 'space', 'enter'].every((k) => keys.ids[k] === 'touch-bottom'), JSON.stringify(keys.ids));
   } else {
-    check(layout, 'keys either side of the screen', ['inv', 'F5', 'F3', 'F4'].every((k) => keys.ids[k] === 'touch-left') && ['help', 'esc', 'more', 'space', 'enter'].every((k) => keys.ids[k] === 'touch-right'), JSON.stringify(keys.ids));
+    check(layout, 'keys either side of the screen', ['esc', 'F3', 'F4', 'F5', 'inv'].every((k) => keys.ids[k] === 'touch-left') && ['help', 'more', 'space', 'enter'].every((k) => keys.ids[k] === 'touch-right'), JSON.stringify(keys.ids));
     check(layout, 'no direction keys sideways (taps and swipes instead)', !keys.ids.n);
   }
   check(layout, 'Space and Enter on one line', keys.spaceEnterLine);

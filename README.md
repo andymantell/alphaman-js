@@ -229,12 +229,14 @@ view is off, so the 2D game plays exactly as before.
 On a touch screen the game gets touch controls (they can also be turned on
 or off under *Settings*):
 
-* the everyday commands as IBM Model M style keys. Sideways they are in
-  columns either side of the screen: on the left *i* (inventory / stats),
-  the main map (F5), known berries and devices (F3), your condition (F4),
-  again, search, the mutations, remove trap, save, rest and sleep; on the
-  right the stairs, Esc, help, *More*, and Space and Enter side by side.
-  Upright, F5, F3, F4, help, Esc and *More* are in a row above the screen,
+* the everyday commands as IBM Model M keys (light keys, with Esc, Enter,
+  More and the arrows grey, in a textured case). Sideways they are in
+  columns either side of the screen: on the left Esc, known berries and
+  devices (F3), your condition (F4), the main map (F5), *i* (inventory /
+  stats), again, search, the mutations, remove trap, save and rest; on the
+  right the stairs, help, sleep, *More*, and Space and Enter side by side.
+  Upright, Esc, F3, F4, F5, help and *More* are in a row above the screen,
+  laid out like the top of the keyboard,
   and below it is a keyboard of direction keys (hold one to keep walking)
   beside the other commands, with the stairs, Space and Enter along the
   bottom. The rest (previous messages, local map, symbols, fast fight,
@@ -311,6 +313,13 @@ on archive.org).
 
 The screen font is the IBM VGA 9x16 font from
 [pcface](https://github.com/susam/pcface) (CC BY-SA 4.0).
+
+The touch keys' legends are in Varela Round (SIL Open Font License 1.1,
+`js/touch/varela-round-OFL.txt`), standing in for the rounded Helvetica of
+the Model M's keycaps. The keycaps are drawn from measurements of
+"IBM Model M Keyboard" (https://skfb.ly/6ZFM6) by timblewee, licensed under
+Creative Commons Attribution (http://creativecommons.org/licenses/by/4.0/);
+nothing of the model itself is included.
 
 ## License
 

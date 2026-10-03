@@ -44,23 +44,27 @@
     sw: [K.End, '\u2199', '', 'move arrow'], so: [K.ArrowDown, '\u2193', '', 'move arrow'], se: [K.PageDown, '\u2198', '', 'move arrow'],
   };
   // Where the keys go.  [id, extra class]; '' is a gap.
-  //  Sideways, in two columns either side of the screen: on the left looking
-  //  at things, then doing things; on the right stairs, then answering the
-  //  game, with Space and Enter side by side.
-  //  Upright, a row above the screen (looking at things, help, Esc, More),
-  //  and below it a keyboard: direction keys beside the commands, then the
-  //  stairs, Space and Enter.
+  //  Sideways, in two columns either side of the screen: on the left Esc,
+  //  the F keys, then doing things; on the right stairs, help and sleep,
+  //  then answering the game, with Space and Enter side by side.
+  //  Upright, a row above the screen laid out like the top of the keyboard
+  //  (Esc, F keys, help, More), and below it a keyboard: direction keys
+  //  beside the commands, then the stairs, Space and Enter.
   const LAYOUTS = {
     sideways: {
-      left: ['inv', 'F5', 'F3', 'F4', 'a', 's', 'm', 'p', 'r', 'S', 'rest', 'Z'],
-      right: ['down', 'up', 'esc', 'help', ['more', 'wide'], ['space', 'tall'], ['enter', 'tall']],
+      // Esc and the F keys at the top left, as on the keyboard.
+      left: ['esc', 'F3', 'F4', 'F5', 'inv', 'a', 's', 'm', 'p', 'r', 'S', 'rest'],
+      right: ['down', 'up', 'help', 'Z', ['more', 'wide'], ['space', 'tall'], ['enter', 'tall']],
     },
     upright: {
-      top: ['F5', 'F3', 'F4', 'help', 'esc', 'more'],
-      bottom: ['nw', 'n', 'ne', 'inv', 'a', 's', 'w', '', 'e', 'm', 'p', 'r', 'sw', 'so', 'se', 'S', 'rest', 'Z',
-        'down', 'up', ['space', 'wide3'], 'enter'],
+      // Esc on its own, then the F keys in groups, then help and More.
+      top: ['esc', '', 'F3', 'F4', '', 'F5', '', 'help', 'more'],
+      // Direction keys | commands; a gap row; stairs, Space and Enter.
+      bottom: ['nw', 'n', 'ne', '', 'inv', 'a', 's', 'w', '', 'e', '', 'm', 'p', 'r', 'sw', 'so', 'se', '', 'S', 'rest', 'Z',
+        '', '', '', '', '', '', '', 'down', 'up', ['space', 'wide4'], 'enter'],
     },
   };
+
   const PADKEYS = [
     [K.Home, '↖'], [K.ArrowUp, '↑'], [K.PageUp, '↗'],
     [K.ArrowLeft, '←'], null, [K.ArrowRight, '→'],

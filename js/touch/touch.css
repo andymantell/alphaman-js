@@ -40,10 +40,11 @@ body.touch #game, body.touch #game * { -webkit-user-select: none; user-select: n
 body.touch .touch-side { display: grid; }
 .tk.wide { grid-column: span 2; }
 .tk.wide3 { grid-column: span 3; }
+.tk.wide4 { grid-column: span 4; }
 .tk.tall { grid-row: span 3; }   /* Space and Enter, side by side */
 .tk.arrow { font-size: 22px; }
 /* The upright layout's key rows (above and below the screen). */
-.touch-keys { display: none; gap: 3px; padding: 3px; touch-action: none; background: #2a2826; }
+.touch-keys { display: none; gap: 3px; padding: 3px; touch-action: none; }
 .tk.long small { font-size: 8px; letter-spacing: -0.3px; }
 
 /* Keys */
@@ -55,27 +56,58 @@ body.touch .touch-side { display: grid; }
 }
 .tk small { font-size: 9px; font-weight: 400; margin-top: 2px; white-space: nowrap; }
 
-/* IBM Model M: sculpted beige keycaps with grey legends; the grey keys
-   (Esc, Enter, function keys) are darker, as on the real keyboard. */
-body.tk-modelm .touch-side { background: #2a2826; }
+/* IBM Model M.  The keycap is a small SVG drawn from measurements of a 3D
+   model of the keyboard ("IBM Model M Keyboard" by timblewee, CC BY 4.0;
+   only measured, nothing of it is included): skirts, a dished top and its
+   seam, in the model's light and grey colours.  It is sliced so it stretches
+   to any key without bending the corners.  Keys sit in near-black wells in a
+   textured case, as on the real keyboard (colours from photos of one).
+   Light keys for letters and F keys, grey for Esc, Enter, More and arrows. */
+@font-face { font-family: 'Varela Round'; src: url(varela-round.woff2) format('woff2'); font-display: swap; }
+body.tk-modelm {
+  --mm-case: #c9c8c3; --mm-well: #1a1a1a;
+  --mm-legend: #272a36; --mm-legend2: #6a6879;
+}
+body.tk-modelm .touch-side, body.tk-modelm .touch-keys {
+  background-color: var(--mm-case);
+  /* The case: a soft orange-peel grain, lit from above. */
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='t' x='0' y='0' width='100%' height='100%'><feTurbulence type='fractalNoise' baseFrequency='0.55' numOctaves='2' seed='11' stitchTiles='stitch'/><feGaussianBlur stdDeviation='0.45' result='n'/><feDiffuseLighting in='n' surfaceScale='2.2' lighting-color='%23cfceca' diffuseConstant='1.0'><feDistantLight azimuth='270' elevation='62'/></feDiffuseLighting></filter><rect width='100%' height='100%' filter='url(%23t)'/></svg>");
+  background-size: 160px 160px;
+  padding: 10px; gap: 0;
+}
 body.tk-modelm .tk {
-  --cap: #e4dfd3; --cap-edge: #b9b3a5; --legend: #3b3b3b;
-  color: var(--legend);
-  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-weight: 500;
-  background: linear-gradient(to bottom, var(--cap) 0%, color-mix(in srgb, var(--cap) 88%, #000) 100%);
-  border: 1px solid #6f6a60; border-radius: 4px;
-  border-bottom-width: 4px; border-bottom-color: var(--cap-edge);
-  box-shadow: inset 2px 2px 0 rgba(255, 255, 255, 0.55), inset -2px -1px 0 rgba(0, 0, 0, 0.12), 0 1px 0 #000;
+  position: relative; overflow: visible;
+  margin: 2px;
+  background: none;
+  border-style: solid; border-width: 0; border-radius: 1px;
+  border-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 147 148" width="147" height="148"> <defs> <linearGradient id="back" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="%23bab9ae"/><stop offset="1" stop-color="%23bebdb2"/></linearGradient> <linearGradient id="left" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="%23bdbcb1"/><stop offset="1" stop-color="%23c2c1b6"/></linearGradient> <linearGradient id="right" x1="1" y1="0" x2="0" y2="0"><stop offset="0" stop-color="%23bdbcb1"/><stop offset="1" stop-color="%23c2c1b6"/></linearGradient> <linearGradient id="top" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="%23dddbd2"/><stop offset="1" stop-color="%23e0ded6"/></linearGradient> <clipPath id="outer"><rect width="147" height="148" rx="5"/></clipPath> </defs> <g clip-path="url%28%23outer%29"> <rect width="147" height="148" fill="%23c2c1b6"/> <polygon points="0,0 147,0 120.5,23 27,23" fill="url%28%23back%29"/> <polygon points="0,0 27,23 27,144.5 0,148" fill="url%28%23left%29"/> <polygon points="147,0 147,148 120.5,144.5 120.5,23" fill="url%28%23right%29"/> <polygon points="0,148 27,144.5 120.5,144.5 147,148" fill="%23ccccc5"/> <rect x="26.5" y="22.5" width="94.5" height="122.5" rx="9.5" fill="%23cdccc3"/> <rect x="27" y="23" width="93.5" height="121.5" rx="9" fill="url%28%23top%29"/> <rect x="32.4" y="143.5" width="82.7" height="1" rx="0.5" fill="%23ecebe5"/> </g></svg>') 32 36 13 36 fill / 12px 13px 5px 13px stretch;
+  /* The well: deeper under the case lip at the top, and the lit edge of the opening. */
+  box-shadow: 0 -1px 0 2px var(--mm-well), 0 0 0 2px var(--mm-well), 0 1px 0 3px rgba(255, 255, 255, 0.4);
+  color: var(--mm-legend);
+  font: 400 15px/1 'Varela Round', "Helvetica Neue", Helvetica, Arial, sans-serif;
+  -webkit-text-stroke: 0.45px var(--mm-legend);
+  align-items: flex-start; justify-content: flex-start;
+  padding: 16px 0 0 17px;
 }
-body.tk-modelm .tk.special, body.tk-modelm .tk.fkey {
-  --cap: #9d998f; --cap-edge: #75716a; --legend: #1e1e1e;
+body.tk-modelm .tk.special, body.tk-modelm .tk.arrow { border-image-source: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 147 148" width="147" height="148"> <defs> <linearGradient id="back" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="%238c887e"/><stop offset="1" stop-color="%238f8b81"/></linearGradient> <linearGradient id="left" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="%23908c83"/><stop offset="1" stop-color="%23938f86"/></linearGradient> <linearGradient id="right" x1="1" y1="0" x2="0" y2="0"><stop offset="0" stop-color="%23908c83"/><stop offset="1" stop-color="%23938f86"/></linearGradient> <linearGradient id="top" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="%23b7b2a6"/><stop offset="1" stop-color="%23bbb6aa"/></linearGradient> <clipPath id="outer"><rect width="147" height="148" rx="5"/></clipPath> </defs> <g clip-path="url%28%23outer%29"> <rect width="147" height="148" fill="%23938f86"/> <polygon points="0,0 147,0 120.5,23 27,23" fill="url%28%23back%29"/> <polygon points="0,0 27,23 27,144.5 0,148" fill="url%28%23left%29"/> <polygon points="147,0 147,148 120.5,144.5 120.5,23" fill="url%28%23right%29"/> <polygon points="0,148 27,144.5 120.5,144.5 147,148" fill="%23b1afaa"/> <rect x="26.5" y="22.5" width="94.5" height="122.5" rx="9.5" fill="%23a5a197"/> <rect x="27" y="23" width="93.5" height="121.5" rx="9" fill="url%28%23top%29"/> <rect x="32.4" y="143.5" width="82.7" height="1" rx="0.5" fill="%23c6c2ba"/> </g></svg>'); }
+/* The second legend, small, as on the numeric keypad (Home, PgUp...). */
+body.tk-modelm .tk small {
+  position: absolute; left: 17px; bottom: 10px; margin: 0;
+  font: 400 10px/1 'Varela Round', "Helvetica Neue", Helvetica, Arial, sans-serif; color: var(--mm-legend2);
+  -webkit-text-stroke: 0.15px var(--mm-legend2);
 }
-body.tk-modelm .tk.down {
-  border-bottom-width: 1px; margin-top: 3px;
-  box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.35);
-}
-body.tk-modelm .tk.glow { box-shadow: 0 0 0 2px #55ffff, 0 0 10px #55ffff; }
-body.tk-modelm .tk small { color: #5a5a5a; }
+body.tk-modelm .tk.long small { font-size: 8.5px; letter-spacing: -0.2px; }
+body.tk-modelm .tk.arrow { align-items: center; justify-content: center; padding: 0 0 6px; font-size: 20px; }
+body.tk-modelm .tk.down { transform: translateY(1px); filter: brightness(0.95); }
+body.tk-modelm .tk.glow { box-shadow: 0 0 0 2px var(--mm-well), 0 0 0 4px #55ffff, 0 0 12px #55ffff; }
+.gap { visibility: hidden; }
+/* Sideways the keys are narrow: proportionally narrower skirts, legends centred. */
+body.tk-modelm .touch-side .tk { border-image-width: 8px 7px 3px 7px; padding: 12px 0 0; align-items: center; font-size: 13px; }
+body.tk-modelm .touch-side .tk small { left: 0; right: 0; text-align: center; bottom: 7px; font-size: 7.5px; letter-spacing: -0.3px; }
+body.tk-modelm .touch-side .tk.long small { font-size: 6.5px; letter-spacing: -0.35px; }
+/* Keys elsewhere (answers, the item popup): the legend centred. */
+body.tk-modelm #touch-answers .tk, body.tk-modelm #touch-popup .tk { border-image-width: 7px 8px 3px 8px; padding: 0 0 4px; align-items: center; justify-content: center; }
+body.tk-modelm #touch-popup .tk small { position: static; margin-top: 3px; }
 
 /* Direction pad over the bottom-left of the map. */
 #touch-pad {
@@ -219,8 +251,12 @@ body.touch #touch-start input, body.touch #touch-start input * { -webkit-user-se
   body.touch { --side: 0px; }
   body.touch #playarea { flex-direction: column; align-items: stretch; justify-content: flex-start; }
   body.touch .touch-side, body.touch #touch-pad { display: none; }
-  body.touch .touch-keys { display: grid; grid-template-columns: repeat(6, 1fr); grid-auto-rows: 1fr; }
-  body.touch #touch-top { order: -1; flex: none; height: clamp(44px, 6.5dvh, 60px); }
+  body.touch .touch-keys { display: grid; }
+  /* As on the keyboard: Esc on its own, the F keys in groups. */
+  body.touch #touch-top { order: -1; flex: none; height: clamp(64px, 10dvh, 88px);
+    grid-template-columns: 1fr 12px 1fr 1fr 12px 1fr 12px 1fr 1fr; grid-template-rows: 1fr; }
+  /* Direction keys | commands, then a row of stairs, Space and Enter. */
+  body.touch #touch-bottom { grid-template-columns: 1fr 1fr 1fr 12px 1fr 1fr 1fr; grid-template-rows: 1fr 1fr 1fr 12px 1fr; }
   body.touch #touch-bottom { order: 1; flex: 1 1 0; min-height: 0; }
   /* The screen keeps the height of the map, messages and panel (below), so
      the keys stay put when a whole-screen page is shown instead. */
