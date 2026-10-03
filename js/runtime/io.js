@@ -46,7 +46,7 @@ const GameWait = {
   number() { this.numeric = true; },
   // Labels the next key wait as a choice between keys: [key, label] pairs.
   choice(...keys) { this.next('choice', { keys }); },
-  yesNo() { this.choice(['Y', 'Yes'], ['N', 'No']); },
+  yesNo() { this.choice(['Y', 'Y'], ['N', 'N']); },
   // A choice of the numbers 1 to n (one key each).
   numbers(n) {
     const keys = [];

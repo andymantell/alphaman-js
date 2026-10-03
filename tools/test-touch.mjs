@@ -139,8 +139,8 @@ async function run(browser, layout, width, height) {
   await wait(page, 2500);
   let s = await state(page);
   const answers = await page.$$eval('#touch-answers.show .tk', (b) => b.map((x) => x.textContent));
-  check(layout, 'overview question has Yes / No buttons', s.kind === 'choice' && answers.join() === 'Yes,No', JSON.stringify(answers));
-  await page.tap('#touch-answers .tk >> text=No');
+  check(layout, 'overview question has Y / N buttons', s.kind === 'choice' && answers.join() === 'Y,N', JSON.stringify(answers));
+  await page.tap('#touch-answers .tk >> text="N"');
   s = await settle(page);
   check(layout, 'game waits for a command', s.kind === 'command', s.kind);
 
