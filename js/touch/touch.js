@@ -216,7 +216,7 @@
     if (!document.body.classList.contains('touch') || kind === null) return;
     if (kind === 'choice') showAnswers(info.keys);
     else if (kind === 'text' && info.numeric) showAnswers(NUMPAD);
-    else if (kind === 'target') showAnswers([['\r', 'Fire']]);   // Enter: at the cursor
+    else if (kind === 'target') showAnswers([['\r', info.page === 0 ? 'OK' : 'Fire']]);   // Enter: at the cursor (page 0: a region on the main map)
     else answers.classList.remove('show');
   });
 
@@ -763,6 +763,18 @@
   // Fast fight (no space needed between blows) starts on with touch controls;
   // F in the More menu still turns it off.
   GameHooks.fastFightOn = () => document.body.classList.contains('touch');
+
+  // Aiming tells you to use the arrow keys and Enter; with touch controls it
+  // says what to tap instead (the answer button is Fire, or OK for a region).
+  const REWORD = {
+    'Use arrow keys to indicate target': 'Tap the map to aim',
+    'Use arrow keys to indicate region': 'Tap the map to pick a region',
+  };
+  GameHooks.reword = ([l1, l2]) => {
+    if (!touchOn() || !REWORD[l1.trim()]) return [l1, l2];
+    const region = /region/.test(l1);
+    return [REWORD[l1.trim()], `Tap ${region ? 'OK' : 'Fire'} when ready or Esc to exit`];
+  };
 
   // Where a game square is shown on the page (its centre), in either layout.
   function whereIs(col, row) {

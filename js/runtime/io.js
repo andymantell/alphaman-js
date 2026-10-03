@@ -164,6 +164,10 @@ const GameHooks = {
   // null when the game should ask as usual.
   newGame: async () => null,     // { name, difficulty: 0 | 1 | 2 }
   wimpy: async () => null,       // { name, sym, color }
+  // The game's instructions where they name keys a touch screen does not
+  // have (e.g. aiming: the arrow keys and Enter): given the message lines,
+  // gives the lines to print.
+  reword: (lines) => lines,
 };
 
 // Lets the browser render and handle events during long stretches of play

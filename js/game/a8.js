@@ -1039,7 +1039,7 @@ async function Target(num, range, dx, dy, avoidcolr) {
   vpage = 1; screenPages(vpage);
   if (avoidcolr === 0) avoidcolr = -1;
   ClearMess();
-  ljnk(43, 1, 33, 1); ljnk(44, 1, 36, 2); PrintMessage(7, 0);
+  ljnk(43, 1, 33, 1); ljnk(44, 1, 36, 2); [l1, l2] = GameHooks.reword([l1, l2]); PrintMessage(7, 0);
   dx = 0; dy = 0; ndx = 0; ndy = 0; hid = FALSE;
   [sym, fc, bc] = GetSym(localx + dx, localy + dy, 1);
   ta2: {
@@ -1104,7 +1104,7 @@ async function Target(num, range, dx, dy, avoidcolr) {
 async function TargetLong(lsym, range, nlx, nly, fc, bc) {
   let lx = 0, ly = 0, response = 0, done = FALSE;
   screenPages(0); ClearMess();
-  Ljnkbig(43, 1, 27, 43, 63, 6, bl, 3, 1); ljnk(44, 1, 36, 2);
+  Ljnkbig(43, 1, 27, 43, 63, 6, bl, 3, 1); ljnk(44, 1, 36, 2); [l1, l2] = GameHooks.reword([l1, l2]);
   PrintMessage(7, 0);
   lx = mainx; ly = mainy; nlx = lx; nly = ly;
   [lsym, fc, bc] = GetSym(lx, ly, 0);

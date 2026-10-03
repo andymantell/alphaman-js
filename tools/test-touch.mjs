@@ -421,6 +421,9 @@ async function run(browser, layout, width, height) {
   else {
     const fire = await page.$$eval('#touch-answers.show .tk', (b) => b.map((x) => x.textContent));
     check(layout, 'aiming shows a Fire button', fire.join() === 'Fire', JSON.stringify(fire));
+    let said = '';
+    for (let row = 22; row <= 25; row++) said += (await rowText(page, row)).trim() + ' | ';
+    check(layout, 'aiming says what to tap, not the arrow keys and Enter', /Tap the map to aim/.test(said) && /Tap Fire when ready/.test(said) && !/arrow keys|Hit Enter/.test(said), said);
     await recordKeys(page);
     await page.tap('#touch-answers .tk >> text="Fire"');
     await wait(page, 400);
@@ -446,6 +449,8 @@ async function desktop(browser) {
   }));
   check('desktop', 'no touch controls', !/\btouch\b|\bpm\b/.test(d.classes) && d.pm === 'none' && d.keys === 'none' && !d.start, JSON.stringify(d));
   check('desktop', 'the game asks for the name as usual', d.kind === 'text');
+  const words = await page.evaluate(() => GameHooks.reword(['Use arrow keys to indicate target', 'Hit Enter when ready or Esc to exit ']));
+  check('desktop', 'aiming keeps the original words', words[0] === 'Use arrow keys to indicate target' && words[1] === 'Hit Enter when ready or Esc to exit ', JSON.stringify(words));
   await page.close();
 }
 
