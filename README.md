@@ -238,7 +238,8 @@ or off under *Settings*):
   credits, the boss key) are in the *More* menu, with the settings;
 * *Inv* shows your items on the right of the screen (and again goes back to
   the stats). Tapping an item offers what to do with it: use or unuse,
-  eat (food and berries), throw, figure out, examine or drop;
+  eat (food and berries), throw, figure out, examine or drop, each shown
+  with the game's own key for it;
 * to move, touch the screen: you step in the direction of the touch from
   your character (holding keeps walking). Touching outside the map counts
   too, so the stats or the messages are an easy target for walking east or

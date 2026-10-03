@@ -209,7 +209,9 @@
     popup.replaceChildren(
       el('p', { textContent: item.text }),
       ...acts.map(([key, label]) => {
-        const b = el('button', { type: 'button', className: 'tk word', textContent: label });
+        // Each with the game's own key for it, as on the keyboard.
+        const b = el('button', { type: 'button', className: 'tk word' },
+          [el('kbd', { textContent: key }), el('span', { className: 'label', textContent: label })]);
         b.addEventListener('pointerdown', (e) => {
           e.preventDefault(); e.stopPropagation(); closePopup();
           pending = { action: key, text: item.text, t: performance.now() };
@@ -218,7 +220,8 @@
         return b;
       }),
       (() => {
-        const b = el('button', { type: 'button', className: 'tk word special', textContent: 'Cancel' });
+        const b = el('button', { type: 'button', className: 'tk word special' },
+          [el('kbd', { textContent: 'Esc' }), el('span', { className: 'label', textContent: 'Cancel' })]);
         b.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); closePopup(); });
         return b;
       })(),

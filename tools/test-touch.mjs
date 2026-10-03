@@ -186,9 +186,10 @@ async function run(browser, layout, width, height) {
     await wait(page, 250);
     const pop = await page.evaluate(() => {
       const p = document.getElementById('touch-popup');
-      return { shown: !p.hidden, title: p.querySelector('p') && p.querySelector('p').textContent, acts: [...p.querySelectorAll('.tk')].map((b) => b.textContent) };
+      return { shown: !p.hidden, title: p.querySelector('p') && p.querySelector('p').textContent, acts: [...p.querySelectorAll('.tk')].map((b) => b.querySelector('kbd').textContent + ' ' + b.querySelector('.label').textContent) };
     });
-    const want = [m.inUse ? 'Unuse' : 'Use', ...(m.edible ? ['Eat'] : []), 'Throw', 'Figure out', 'Examine', 'Drop', 'Cancel'];
+    // Each action with the game's key for it.
+    const want = [m.inUse ? 'U Unuse' : 'u Use', ...(m.edible ? ['e Eat'] : []), 't Throw', 'f Figure out', 'X Examine', 'd Drop', 'Esc Cancel'];
     check(layout, `popup for "${m.text}"`, pop.shown && pop.title === m.text && pop.acts.join() === want.join(), JSON.stringify(pop));
     await page.tap('#touch-popup .tk >> text=Cancel');
     await wait(page, 150);
