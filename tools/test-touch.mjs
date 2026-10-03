@@ -136,8 +136,32 @@ async function run(browser, layout, width, height) {
   check(layout, 'game screen canvas shown only when not split',
     (await page.$eval('#screen', (c) => getComputedStyle(c).visibility)) === (upright ? 'hidden' : 'visible'));
 
+  // Where the keys are: upright, a row above the screen and a keyboard with
+  // direction keys below it; sideways, columns either side.
+  const keys = await page.evaluate(() => {
+    const at = (id) => { const b = document.querySelector(`.tk[data-k="${id}"]`); return b && b.isConnected && b.getBoundingClientRect().height > 0 ? b.parentElement.id : null; };
+    const screenBox = document.getElementById('viewport').getBoundingClientRect();
+    const top = document.getElementById('touch-top').getBoundingClientRect();
+    const space = document.querySelector('.tk[data-k=space]').getBoundingClientRect(), enter = document.querySelector('.tk[data-k=enter]').getBoundingClientRect();
+    return {
+      ids: Object.fromEntries(['inv', 'F5', 'F3', 'F4', 'help', 'esc', 'more', 'n', 'so', 'e', 'w', 'space', 'enter'].map((id) => [id, at(id)])),
+      topAbove: top.height > 0 && top.bottom <= screenBox.top + 1,
+      spaceEnterLine: Math.abs(space.top - enter.top) < 2 && space.height > 0,
+      typeKey: !!document.querySelector('.tk[data-k=kbd]'),
+    };
+  });
+  if (upright) {
+    check(layout, 'F keys, help, Esc and More above the screen', keys.topAbove && ['F5', 'F3', 'F4', 'help', 'esc', 'more'].every((k) => keys.ids[k] === 'touch-top'), JSON.stringify(keys.ids));
+    check(layout, 'direction keys and commands below the screen', ['n', 'so', 'e', 'w', 'inv', 'space', 'enter'].every((k) => keys.ids[k] === 'touch-bottom'), JSON.stringify(keys.ids));
+  } else {
+    check(layout, 'keys either side of the screen', ['inv', 'F5', 'F3', 'F4'].every((k) => keys.ids[k] === 'touch-left') && ['help', 'esc', 'more', 'space', 'enter'].every((k) => keys.ids[k] === 'touch-right'), JSON.stringify(keys.ids));
+    check(layout, 'no direction keys sideways (taps and swipes instead)', !keys.ids.n);
+  }
+  check(layout, 'Space and Enter on one line', keys.spaceEnterLine);
+  check(layout, 'no type key', !keys.typeKey);
+
   // Stats panel.
-  if (s.rdisp !== 1) { await page.tap('#touch-left .tk >> nth=0'); await wait(page, 400); }
+  if (s.rdisp !== 1) { await page.tap('.tk[data-k=inv]'); await wait(page, 400); }
   const name = (await page.evaluate(() => name$)).trim();
   check(layout, 'stats panel shows the name', (await rowText(page, 2, 55, 80)).trim() === name, name);
   const statRows = await panelRows(page);
@@ -166,11 +190,11 @@ async function run(browser, layout, width, height) {
   await page.evaluate(async () => { hunger = -1000; await HungFatEnc(); });
 
   // Inventory.
-  await page.tap('#touch-left .tk >> nth=0');
+  await page.tap('.tk[data-k=inv]');
   await wait(page, 400);
   s = await state(page);
   check(layout, 'Inv shows the items', s.rdisp === 2);
-  check(layout, 'Inv key then offers the stats', (await page.$eval('#touch-left .tk small', (x) => x.textContent)) === 'stats');
+  check(layout, 'the inventory key reads i inv/stats', (await page.$eval('.tk[data-k=inv]', (x) => x.textContent)) === 'iinv/stats');
   const itemRows = await panelRows(page);
   check(layout, 'one panel row per item', itemRows.join() === Array.from({ length: s.ngoody }, (_, i) => i + 2).join(), itemRows.join());
   if (upright) check(layout, 'items copied exactly', (await compareCopies(page)).length === 0);
@@ -239,12 +263,12 @@ async function run(browser, layout, width, height) {
   s = await settle(page);
 
   // Back to the stats.
-  await page.tap('#touch-left .tk >> nth=0');
+  await page.tap('.tk[data-k=inv]');
   await wait(page, 400);
   check(layout, 'Inv again shows the stats', (await state(page)).rdisp === 1);
 
   // Whole-screen pages (F3: berries and devices) are shown whole.
-  await page.tap('#touch-left .tk >> nth=2');
+  await page.tap('.tk[data-k=F3]');
   await wait(page, 500);
   s = await state(page);
   check(layout, 'F3 page shown whole', s.vpage === 3 && !s.split);
@@ -296,6 +320,20 @@ async function run(browser, layout, width, height) {
     await tapWalk('a tap on the panel below', { x: cx, y: r.top + r.height / 2 }, [0, 1]);
   } else {
     await tapWalk('a tap on the panel to the right', await where(70, at.y), [1, 0]);
+  }
+
+  // The direction keys of the upright keyboard: a tap is one step.
+  if (upright) {
+    for (const [id, dir] of [['e', [1, 0]], ['w', [-1, 0]], ['so', [0, 1]], ['n', [0, -1]]]) {
+      const from = await settle(page), free = await open(...dir);
+      await recordKeys(page);
+      await page.tap(`.tk[data-k=${id}]`);
+      await wait(page, 500);
+      const keys = await sentKeys(page);
+      check(layout, `direction key ${id} sends one step`, keys.length === 1 && keys[0] === ARROW[dir.join()], JSON.stringify(keys));
+      const to = await settle(page);
+      if (free) check(layout, `direction key ${id} walks there`, to.x === from.x + dir[0] && to.y === from.y + dir[1], `${from.x},${from.y} -> ${to.x},${to.y}`);
+    }
   }
 
   check(layout, 'no script errors', errors.length === 0, errors.join(' | '));

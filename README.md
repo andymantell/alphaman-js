@@ -229,14 +229,17 @@ view is off, so the 2D game plays exactly as before.
 On a touch screen the game gets touch controls (they can also be turned on
 or off under *Settings*):
 
-* the everyday commands as IBM Model M style keys either side of the
-  screen (in portrait, all together under it): on the left *Inv*, the main
-  map (F5), known berries and devices (F3), your condition (F4), again,
-  search, the mutations, remove trap, save, rest and sleep; on the right
-  the stairs, Esc, Enter, the keyboard, help, *More* and a big space bar.
-  The rest (previous messages, local map, symbols, fast fight, quit,
-  credits, the boss key) are in the *More* menu, with the settings;
-* *Inv* shows your items on the right of the screen (and again goes back to
+* the everyday commands as IBM Model M style keys. Sideways they are in
+  columns either side of the screen: on the left *i* (inventory / stats),
+  the main map (F5), known berries and devices (F3), your condition (F4),
+  again, search, the mutations, remove trap, save, rest and sleep; on the
+  right the stairs, Esc, help, *More*, and Space and Enter side by side.
+  Upright, F5, F3, F4, help, Esc and *More* are in a row above the screen,
+  and below it is a keyboard of direction keys (hold one to keep walking)
+  beside the other commands, with the stairs, Space and Enter along the
+  bottom. The rest (previous messages, local map, symbols, fast fight,
+  quit, credits, the boss key) are in the *More* menu, with the settings;
+* *i* shows your items on the right of the screen (and again goes back to
   the stats). Tapping an item offers what to do with it: use or unuse,
   eat (food and berries), throw, figure out, examine or drop, each shown
   with the game's own key for it;

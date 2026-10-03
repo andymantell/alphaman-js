@@ -27,27 +27,40 @@
   };
   const dirKey = (dx, dy) => DIR[Math.sign(dx) + ',' + Math.sign(dy)];
 
-  // The game's commands (from its ? screen), in pairs.  [key, legend, word, class]
-  // Left: looking at things, then doing things.  'inv' shows the items on
-  // the right of the screen (F2), where tapping one offers what to do with
-  // it, or the stats again (F1).
-  const LEFT = [
-    ['inv', 'Inv', 'items', 'fkey inv'], [K.F5, 'F5', 'map', 'fkey'],
-    [K.F3, 'F3', 'berries', 'fkey'], [K.F4, 'F4', 'condition', 'fkey long'],
-    ['a', 'a', 'again'], ['s', 's', 'search'],
-    ['m', 'm', 'mental'], ['p', 'p', 'phys'],
-    ['r', 'r', 'trap'], ['S', 'S', 'save', 'fkey'],
-    ['.', '.', 'rest'], ['Z', 'Z', 'sleep'],
-  ];
-  // Right: stairs, then answering the game.  The rest of the commands are
-  // in the More menu.
-  const RIGHT = [
-    ['<', '<', 'down'], ['>', '>', 'up'],
-    ['\x1b', 'Esc', 'cancel', 'special'], ['\r', '\u21b5', 'enter', 'special'],
-    ['kbd', '\u2328', 'type', 'special'], ['?', '?', 'help'],
-    ['menu', '\u2261', 'more', 'special wide more'],
-    [' ', '\u2423', 'space', 'move wide space'],
-  ];
+  // The game's commands (from its ? screen).  id: [key, legend, word, class]
+  // 'inv' shows the items on the right of the screen (F2), where tapping one
+  // offers what to do with it, or the stats again (F1); 'menu' opens More.
+  const KEYS = {
+    inv: ['inv', 'i', 'inv/stats', 'fkey long'],
+    F5: [K.F5, 'F5', 'map', 'fkey'], F3: [K.F3, 'F3', 'berries', 'fkey'], F4: [K.F4, 'F4', 'condition', 'fkey long'],
+    a: ['a', 'a', 'again'], s: ['s', 's', 'search'], m: ['m', 'm', 'mental'], p: ['p', 'p', 'phys'],
+    r: ['r', 'r', 'trap'], S: ['S', 'S', 'save', 'fkey'], rest: ['.', '.', 'rest'], Z: ['Z', 'Z', 'sleep'],
+    down: ['<', '<', 'down'], up: ['>', '>', 'up'],
+    esc: ['\x1b', 'Esc', 'cancel', 'special'], help: ['?', '?', 'help'], more: ['menu', '\u2261', 'more', 'special'],
+    enter: ['\r', '\u21b5', 'enter', 'special'], space: [' ', '\u2423', 'space', 'move'],
+    // The direction keys of the upright keyboard (held: keep walking).
+    nw: [K.Home, '\u2196', '', 'move arrow'], n: [K.ArrowUp, '\u2191', '', 'move arrow'], ne: [K.PageUp, '\u2197', '', 'move arrow'],
+    w: [K.ArrowLeft, '\u2190', '', 'move arrow'], e: [K.ArrowRight, '\u2192', '', 'move arrow'],
+    sw: [K.End, '\u2199', '', 'move arrow'], so: [K.ArrowDown, '\u2193', '', 'move arrow'], se: [K.PageDown, '\u2198', '', 'move arrow'],
+  };
+  // Where the keys go.  [id, extra class]; '' is a gap.
+  //  Sideways, in two columns either side of the screen: on the left looking
+  //  at things, then doing things; on the right stairs, then answering the
+  //  game, with Space and Enter side by side.
+  //  Upright, a row above the screen (looking at things, help, Esc, More),
+  //  and below it a keyboard: direction keys beside the commands, then the
+  //  stairs, Space and Enter.
+  const LAYOUTS = {
+    sideways: {
+      left: ['inv', 'F5', 'F3', 'F4', 'a', 's', 'm', 'p', 'r', 'S', 'rest', 'Z'],
+      right: ['down', 'up', 'esc', 'help', ['more', 'wide'], ['space', 'tall'], ['enter', 'tall']],
+    },
+    upright: {
+      top: ['F5', 'F3', 'F4', 'help', 'esc', 'more'],
+      bottom: ['nw', 'n', 'ne', 'inv', 'a', 's', 'w', '', 'e', 'm', 'p', 'r', 'sw', 'so', 'se', 'S', 'rest', 'Z',
+        'down', 'up', ['space', 'wide3'], 'enter'],
+    },
+  };
   const PADKEYS = [
     [K.Home, '↖'], [K.ArrowUp, '↑'], [K.PageUp, '↗'],
     [K.ArrowLeft, '←'], null, [K.ArrowRight, '→'],
@@ -80,10 +93,6 @@
   setInterval(() => {
     pumpTarget();
     pumpRun();
-    // The inventory key is captioned with what it would show next.
-    const word = globalThis.rdisp === 2 ? 'stats' : 'items';
-    const cap = invCaption();
-    if (cap && cap.textContent !== word) cap.textContent = word;
     if (!hold || performance.now() < hold.next || KB.buffer.length) return;
     const k = hold.key();
     hold.next = performance.now() + (hold.walk && !hold.sent ? 300 : 160);
@@ -92,11 +101,11 @@
 
   function makeKey([key, legend, word, cls], repeat) {
     const b = el('button', { type: 'button', className: 'tk ' + (cls || '') }, [legend]);
+    b.dataset.base = b.className;
     if (word) b.append(el('small', { textContent: word }));
     b.addEventListener('pointerdown', (e) => {
       e.preventDefault();
       b.classList.add('down');
-      if (key === 'kbd') { openKeyboard(); return; }
       if (key === 'menu') { toggleMenu(); return; }
       target = null;
       if (key === 'inv') { closePopup(); send(globalThis.rdisp === 2 ? K.F1 : K.F2); return; }
@@ -107,15 +116,38 @@
     b.addEventListener('pointercancel', up);
     b.addEventListener('pointerleave', up);
     b.addEventListener('contextmenu', (e) => e.preventDefault());
-    keyButtons.set(key, b);
     return b;
   }
-  const keyButtons = new Map();
-  const invCaption = () => keyButtons.get('inv') && keyButtons.get('inv').querySelector('small');
-  const left = el('div', { className: 'touch-side', id: 'touch-left' }, LEFT.map((k) => makeKey(k, false)));
-  const right = el('div', { className: 'touch-side', id: 'touch-right' }, RIGHT.map((k) => makeKey(k, false)));
-  playarea.prepend(left);
-  playarea.append(right);
+  const keyButtons = new Map();   // id -> button
+  for (const [id, def] of Object.entries(KEYS)) {
+    const b = makeKey(def, def[3] && def[3].includes('arrow'));
+    b.dataset.k = id;
+    keyButtons.set(id, b);
+  }
+  const holders = {
+    left: el('div', { className: 'touch-side', id: 'touch-left' }),
+    right: el('div', { className: 'touch-side', id: 'touch-right' }),
+    top: el('div', { className: 'touch-keys', id: 'touch-top' }),
+    bottom: el('div', { className: 'touch-keys', id: 'touch-bottom' }),
+  };
+  playarea.prepend(holders.top, holders.left);
+  playarea.append(holders.right, holders.bottom);
+  // Puts the keys where the layout for the way the screen is turned says.
+  const upright = matchMedia('(orientation: portrait)');
+  function placeKeys() {
+    const layout = LAYOUTS[upright.matches ? 'upright' : 'sideways'];
+    for (const [name, holder] of Object.entries(holders)) {
+      holder.replaceChildren(...(layout[name] || []).map((item) => {
+        const [id, extra] = Array.isArray(item) ? item : [item, ''];
+        if (!id) return el('span', { className: 'gap' });
+        const b = keyButtons.get(id);
+        b.className = b.dataset.base + (extra ? ' ' + extra : '');
+        return b;
+      }));
+    }
+  }
+  placeKeys();
+  upright.addEventListener('change', placeKeys);
   const pad = el('div', { id: 'touch-pad' }, PADKEYS.map((k) => k ? makeKey([k[0], k[1], '', 'move'], true) : el('span')));
   screenbox.append(pad);
 
@@ -134,9 +166,9 @@
   const cellPct = (col, row) => ({ left: (col - 1) * 100 / 80 + '%', top: (row - 1) * 100 / 25 + '%' });
   function showWait(kind, info) {
     if (!document.body.classList.contains('touch')) return;
-    for (const k of [' ', '\r']) keyButtons.get(k).classList.remove('glow');
-    if (kind === 'continue') keyButtons.get(' ').classList.add('glow');
-    if (kind === 'target') keyButtons.get('\r').classList.add('glow');
+    for (const k of ['space', 'enter']) keyButtons.get(k).classList.remove('glow');
+    if (kind === 'continue') keyButtons.get('space').classList.add('glow');
+    if (kind === 'target') keyButtons.get('enter').classList.add('glow');
     if (kind === 'text') {
       Object.assign(typeBox.style, cellPct(info.col, info.row), { width: (81 - info.col) * 100 / 80 + '%' });
       Object.assign(input.style, cellPct(info.col, info.row));
