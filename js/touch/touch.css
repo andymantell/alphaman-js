@@ -213,9 +213,15 @@ body.touch #touch-start input, body.touch #touch-start input * { -webkit-user-se
 @media (orientation: portrait) {
   body.touch { --side: 0px; }
   body.touch #playarea { flex-direction: column; align-items: stretch; justify-content: flex-start; }
-  body.touch #playarea > #viewport { order: 0; flex: none; width: 100vw; margin-block: auto; }
+  /* The screen keeps the height of the map, messages and panel (below), so
+     the keys stay put when a whole-screen page is shown instead. */
+  body.touch #playarea > #viewport {
+    order: 0; flex: none; width: 100vw;
+    min-height: calc(100vw * (352 / 468 + 48 / 486 + 176 / 486));
+    display: flex; flex-direction: column; justify-content: center;
+  }
   body.touch .touch-side {
-    width: auto; align-self: stretch; height: 25dvh;   /* the two together: the lower half */
+    width: auto; align-self: stretch; flex: 1 1 0; min-height: 0;   /* the keys share what is left */
     grid-template-columns: repeat(4, 1fr); grid-auto-rows: 1fr;
   }
   body.touch #touch-left { order: 1; padding-bottom: 0; }
@@ -223,3 +229,15 @@ body.touch #touch-start input, body.touch #touch-start input * { -webkit-user-se
   body.touch #touch-right .tk.space { grid-column: span 4; grid-row: auto; }
   #touch-player { flex-direction: column; gap: 8px; }
 }
+
+/* Portrait split: the map, messages and panel copied from the game screen
+   (body.pm is set by touch.js while it is shown). */
+#pm { display: none; }
+body.pm #pm { display: flex; flex-direction: column; }
+body.pm #screen { position: absolute; left: 0; top: 0; visibility: hidden; }
+#pm canvas { display: block; width: 100%; height: auto; image-rendering: pixelated; }
+#pm-map { position: relative; }
+#pm-panel.pick { outline: 1px solid #55ffff; outline-offset: -1px; box-shadow: inset 0 0 8px #55ffff; }
+body.pm #touch-type, body.pm #touch-items { display: none !important; }
+body.pm #touch-pad { bottom: 3%; left: 2%; width: 30%; }
+body.pm #touch-popup { top: 4px !important; left: 4px; right: 4px; max-width: none; }

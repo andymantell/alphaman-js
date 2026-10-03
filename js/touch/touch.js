@@ -305,12 +305,99 @@
     const c = document.getElementById('screen3d');
     return !!c && getComputedStyle(c).display !== 'none';
   };
+  const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+  // The game square under a touch.
   function cellAt(e) {
+    if (split) return splitCellAt(e.clientX, e.clientY);
     const r = canvas.getBoundingClientRect();
     return {
-      col: Math.min(80, Math.max(1, Math.floor((e.clientX - r.left) / r.width * 80) + 1)),
-      row: Math.min(25, Math.max(1, Math.floor((e.clientY - r.top) / r.height * 25) + 1)),
+      col: clamp(Math.floor((e.clientX - r.left) / r.width * 80) + 1, 1, 80),
+      row: clamp(Math.floor((e.clientY - r.top) / r.height * 25) + 1, 1, 25),
     };
+  }
+  // Where the character is on the page, and half a square's size.
+  function characterAt() {
+    const r = (split ? mapCanvas : canvas).getBoundingClientRect();
+    const cols = split ? 52 : 80, rows = split ? 22 : 25;
+    return {
+      x: r.left + (localx - 0.5) * r.width / cols, y: r.top + (localy - 0.5) * r.height / rows,
+      hw: r.width / cols / 2, hh: r.height / rows / 2,
+    };
+  }
+
+  // ---- Portrait: the map takes the full width, with the messages under it
+  // and then the panel from the right of the screen (stats or items), its
+  // lines laid out again in two columns, with the location box above them.
+  // All copied from the game screen, which the game draws as always; taps
+  // on the copies are taken back to the squares they show.  Other screens
+  // (help, lists, the start) are shown whole.
+  const MAP_CORNERS = new Set([218, 191, 192, 217, 201, 187, 200, 188]);
+  const portrait = matchMedia('(orientation: portrait)');
+  const PANEL_LINES = 10;   // lines per column kept free (most panels fit)
+  const mapCanvas = el('canvas', { width: 468, height: 352 });
+  const pmMap = el('div', { id: 'pm-map' }, [mapCanvas]);
+  const msgCanvas = el('canvas', { id: 'pm-msg', width: 486, height: 48 });
+  const panelCanvas = el('canvas', { id: 'pm-panel', width: 486, height: 16 * (PANEL_LINES + 1) });
+  const pm = el('div', { id: 'pm' }, [pmMap, msgCanvas, panelCanvas]);
+  screenbox.append(pm);
+  let split = false;
+  let panelLines = [];   // { row, side, line }: game row shown on panel line (from 1), column side 0 / 1
+  const blankCell = (c) => (c & 255) === 32 || (c & 255) === 0;
+  const playingScreen = () => SCR.vpage <= 1 &&
+    [[1, 1], [52, 1], [1, 22], [52, 22]].every(([x, y]) => MAP_CORNERS.has(SCR.getCell(0, x, y) & 255));
+  const view3dOn = () => !!(window.AlphaMan3D && window.AlphaMan3D.view && window.AlphaMan3D.view.on);
+  function layoutPanel() {
+    const rows = [];
+    for (let row = 1; row <= 22; row++) {
+      for (let col = 54; col <= 80; col++) if (!blankCell(SCR.getCell(SCR.vpage, col, row))) { rows.push(row); break; }
+    }
+    const per = Math.max(1, Math.ceil(rows.length / 2));
+    panelLines = rows.map((row, i) => ({ row, side: i < per ? 0 : 1, line: (i % per) + 1 }));
+    return per;
+  }
+  function setSplit(on) {
+    if (on === split) return;
+    split = on;
+    document.body.classList.toggle('pm', on);
+    (on ? pmMap : screenbox).append(pad);
+  }
+  function drawSplit() {
+    const on = document.body.classList.contains('touch') && portrait.matches && playingScreen() && !view3dOn();
+    setSplit(on);
+    if (on) {
+      mapCanvas.getContext('2d').drawImage(canvas, 0, 0, 468, 352, 0, 0, 468, 352);
+      msgCanvas.getContext('2d').drawImage(canvas, 0, 352, 486, 48, 0, 0, 486, 48);
+      const per = layoutPanel(), h = 16 * (Math.max(per, PANEL_LINES) + 1);
+      if (panelCanvas.height !== h) panelCanvas.height = h;
+      const ctx = panelCanvas.getContext('2d');
+      ctx.fillStyle = '#000'; ctx.fillRect(0, 0, 486, h);
+      // The location box (rows 24 and 25, columns 56-80) as one line.
+      ctx.drawImage(canvas, 495, 368, 225, 16, 18, 0, 225, 16);
+      ctx.drawImage(canvas, 495, 384, 225, 16, 243, 0, 225, 16);
+      for (const { row, side, line } of panelLines) {
+        ctx.drawImage(canvas, 477, (row - 1) * 16, 243, 16, side * 243, line * 16, 243, 16);
+      }
+      panelCanvas.classList.toggle('pick', GameWait.kind === 'item');
+    }
+    requestAnimationFrame(drawSplit);
+  }
+  requestAnimationFrame(drawSplit);
+  function splitCellAt(x, y) {
+    let r = mapCanvas.getBoundingClientRect();
+    if (y < r.bottom) {
+      return { col: clamp(Math.floor((x - r.left) / r.width * 52) + 1, 1, 52), row: clamp(Math.floor((y - r.top) / r.height * 22) + 1, 1, 22) };
+    }
+    r = msgCanvas.getBoundingClientRect();
+    if (y < r.bottom) {
+      return { col: clamp(Math.floor((x - r.left) / r.width * 54) + 1, 1, 54), row: clamp(Math.floor((y - r.top) / r.height * 3) + 23, 23, 25) };
+    }
+    r = panelCanvas.getBoundingClientRect();
+    const sx = (x - r.left) / r.width * 486, sy = (y - r.top) / r.height * panelCanvas.height;
+    const line = Math.floor(sy / 16), side = sx < 243 ? 0 : 1;
+    const col = 54 + clamp(Math.floor((sx - side * 243) / 9), 0, 26);
+    if (line <= 0) return { col: clamp(col + 2, 56, 80), row: 24 };
+    const hit = panelLines.find((p) => p.side === side && p.line === line);
+    return { col, row: hit ? hit.row : 23 };   // row 23 of the panel is always blank
   }
   const onMap = ({ col, row }) => col >= 1 && col <= 52 && row >= 1 && row <= 22;
   const cellCode = (col, row) => SCR.getCell(SCR.vpage, col, row) & 255;
@@ -340,11 +427,8 @@
   function walkKey() {
     if (!finger || GameWait.kind !== 'command' || SCR.vpage !== 1) return null;
     if (finger.dragged) return dirOf(finger.x - finger.x0, finger.y - finger.y0);
-    const r = canvas.getBoundingClientRect();
-    const cx = r.left + (globalThis.localx - 0.5) * r.width / 80;
-    const cy = r.top + (globalThis.localy - 0.5) * r.height / 25;
-    const px = finger.x - cx, py = finger.y - cy;
-    if (Math.abs(px) < r.width / 160 && Math.abs(py) < r.height / 50) return null;   // on the character
+    const c = characterAt(), px = finger.x - c.x, py = finger.y - c.y;
+    if (Math.abs(px) < c.hw && Math.abs(py) < c.hh) return null;   // on the character
     return dirOf(px, py);
   }
   // Running: a flick (a quick swipe) keeps walking that way until something
@@ -409,9 +493,8 @@
       return;
     }
     if (kind === 'direction') {
-      const r = canvas.getBoundingClientRect();
-      const px = e.clientX - (r.left + (localx - 0.5) * r.width / 80), py = e.clientY - (r.top + (localy - 0.5) * r.height / 25);
-      if (Math.hypot(px, py) > r.width / 160) send(dirOf(px, py));
+      const c = characterAt(), px = e.clientX - c.x, py = e.clientY - c.y;
+      if (Math.abs(px) > c.hw || Math.abs(py) > c.hh) send(dirOf(px, py));
       return;
     }
     if (kind === 'command') {
@@ -644,6 +727,21 @@
   // F in the More menu still turns it off.
   GameHooks.fastFightOn = () => document.body.classList.contains('touch');
 
+  // Where a game square is shown on the page (its centre), in either layout.
+  function whereIs(col, row) {
+    const at = (el, fx, fy) => { const r = el.getBoundingClientRect(); return { x: r.left + fx * r.width, y: r.top + fy * r.height }; };
+    if (!split) return at(canvas, (col - 0.5) / 80, (row - 0.5) / 25);
+    if (row <= 22 && col <= 52) return at(mapCanvas, (col - 0.5) / 52, (row - 0.5) / 22);
+    if (row >= 23 && col <= 54) return at(msgCanvas, (col - 0.5) / 54, (row - 22.5) / 3);
+    const h = panelCanvas.height;
+    if (row >= 24) return at(panelCanvas, (Math.max(col, 56) - 56 + 2.5 + (row - 24) * 25) * 9 / 486, 8 / h);
+    const p = panelLines.find((q) => q.row === row);
+    return p ? at(panelCanvas, (p.side * 243 + (col - 54 + 0.5) * 9) / 486, (p.line * 16 + 8) / h) : null;
+  }
+
   // For tests.
-  window.AlphaManTouch = { apply, isOn, menu, begin };
+  window.AlphaManTouch = {
+    apply, isOn, menu, begin, whereIs,
+    isSplit: () => split, panelLines: () => panelLines, cellAtPoint: (x, y) => cellAt({ clientX: x, clientY: y }),
+  };
 })();

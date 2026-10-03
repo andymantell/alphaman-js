@@ -261,8 +261,12 @@ or off under *Settings*):
   time), and the game does not ask for them again, nor for a name when
   starting over after a death;
 * the game can be played either way up: sideways, with the keys either
-  side of the screen, or upright, with the screen at the top and the keys
-  below.
+  side of the screen, or upright, with the keys below the screen. Upright,
+  the map takes the full width, with the messages under it and then the
+  panel from the right of the screen (stats or items) laid out again in
+  two columns, with the location box above them. These are copies of the
+  game screen, which the game draws as always; other screens (help, lists)
+  are shown whole.
 
 *Play* fills the screen where the browser can. iPhones have no full screen for web pages;
 adding AlphaMan to the Home Screen (Share, *Add to Home Screen*) opens it
@@ -287,6 +291,11 @@ Developer tools:
 * `node tools/check-async.mjs` - checks that every call to a routine that
   waits for the player is awaited
 * `node tools/lint.mjs` - checks the scripts for undefined names (needs eslint)
+* `node tools/test-touch.mjs` - tests the touch controls in a phone-sized
+  Chromium, sideways and upright: everything the panel on the right shows,
+  the inventory popup, picking items, the answer buttons, whole-screen
+  pages, walking by touch, and that the upright layout copies the game
+  screen exactly (needs playwright and its Chromium)
 * `node tools/check-for-bounds.mjs` - finds `for` loops whose end value can
   change inside the loop (QuickBasic evaluates it only once)
 
