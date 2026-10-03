@@ -191,16 +191,18 @@ async function run(browser, layout, width, height) {
   check(layout, 'game screen canvas shown only when not split',
     (await page.$eval('#screen', (c) => getComputedStyle(c).visibility)) === (upright ? 'hidden' : 'visible'));
 
-  // Where the keys are: upright, a row above the screen and a keyboard with
-  // direction keys below it; sideways, columns either side.
+  // Where the keys are: upright, a row above the screen and a keyboard of
+  // commands right under it; sideways, columns either side.  No direction
+  // keys either way: walking is by tapping and swiping.
   const keys = await page.evaluate(() => {
     const at = (id) => { const b = document.querySelector(`.tk[data-k="${id}"]`); return b && b.isConnected && b.getBoundingClientRect().height > 0 ? b.parentElement.id : null; };
     const screenBox = document.getElementById('viewport').getBoundingClientRect();
     const top = document.getElementById('touch-top').getBoundingClientRect();
     const space = document.querySelector('.tk[data-k=space]').getBoundingClientRect(), enter = document.querySelector('.tk[data-k=enter]').getBoundingClientRect();
     return {
-      ids: Object.fromEntries(['inv', 'F5', 'F3', 'F4', 'help', 'esc', 'more', 'n', 'so', 'e', 'w', 'space', 'enter'].map((id) => [id, at(id)])),
+      ids: Object.fromEntries(['inv', 'F5', 'F3', 'F4', 'help', 'esc', 'more', 'n', 'so', 'e', 'w', 'a', 'S', 'down', 'space', 'enter'].map((id) => [id, at(id)])),
       topAbove: top.height > 0 && top.bottom <= screenBox.top + 1,
+      screenOnKeys: Math.abs(document.getElementById('touch-bottom').getBoundingClientRect().top - screenBox.bottom) < 1.5,
       spaceEnterLine: Math.abs(space.top - enter.top) < 2 && space.height > 0,
       typeKey: !!document.querySelector('.tk[data-k=kbd]'),
     };
@@ -223,11 +225,12 @@ async function run(browser, layout, width, height) {
   check(layout, 'legend font loaded', look.font);
   if (upright) {
     check(layout, 'F keys, help, Esc and More above the screen', keys.topAbove && ['F5', 'F3', 'F4', 'help', 'esc', 'more'].every((k) => keys.ids[k] === 'touch-top'), JSON.stringify(keys.ids));
-    check(layout, 'direction keys and commands below the screen', ['n', 'so', 'e', 'w', 'inv', 'space', 'enter'].every((k) => keys.ids[k] === 'touch-bottom'), JSON.stringify(keys.ids));
+    check(layout, 'commands below the screen', ['inv', 'a', 'S', 'down', 'space', 'enter'].every((k) => keys.ids[k] === 'touch-bottom'), JSON.stringify(keys.ids));
+    check(layout, 'the screen sits low, right on the keys', keys.screenOnKeys);
   } else {
     check(layout, 'keys either side of the screen', ['esc', 'F3', 'F4', 'F5', 'inv'].every((k) => keys.ids[k] === 'touch-left') && ['help', 'more', 'space', 'enter'].every((k) => keys.ids[k] === 'touch-right'), JSON.stringify(keys.ids));
-    check(layout, 'no direction keys sideways (taps and swipes instead)', !keys.ids.n);
   }
+  check(layout, 'no direction keys (taps and swipes instead)', !keys.ids.n && !keys.ids.so && !keys.ids.e && !keys.ids.w);
   check(layout, 'Space and Enter on one line', keys.spaceEnterLine);
   check(layout, 'no type key', !keys.typeKey);
 
@@ -399,20 +402,6 @@ async function run(browser, layout, width, height) {
     await tapWalk('a tap on the panel below', { x: cx, y: r.top + r.height / 2 }, [0, 1]);
   } else {
     await tapWalk('a tap on the panel to the right', await where(70, at.y), [1, 0]);
-  }
-
-  // The direction keys of the upright keyboard: a tap is one step.
-  if (upright) {
-    for (const [id, dir] of [['e', [1, 0]], ['w', [-1, 0]], ['so', [0, 1]], ['n', [0, -1]]]) {
-      const from = await settle(page), free = await open(...dir);
-      await recordKeys(page);
-      await page.tap(`.tk[data-k=${id}]`);
-      await wait(page, 500);
-      const keys = await sentKeys(page);
-      check(layout, `direction key ${id} sends one step`, keys.length === 1 && keys[0] === ARROW[dir.join()], JSON.stringify(keys));
-      const to = await settle(page);
-      if (free) checkStep(layout, `direction key ${id} walks there`, from, to, dir);
-    }
   }
 
   check(layout, 'no script errors', errors.length === 0, errors.join(' | '));

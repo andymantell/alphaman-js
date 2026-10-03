@@ -244,10 +244,11 @@ or off under *Settings*):
   right the stairs, help, sleep, *More*, and Space and Enter side by side.
   Upright, Esc, F3, F4, F5, help and *More* are in a row above the screen,
   laid out like the top of the keyboard,
-  and below it is a keyboard of direction keys (hold one to keep walking)
-  beside the other commands, with the stairs, Space and Enter along the
-  bottom. The rest (previous messages, local map, symbols, fast fight,
-  quit, credits, the boss key) are in the *More* menu, with the settings;
+  and right under the screen (kept low, near the thumbs) is a keyboard of
+  the other commands, six across, with the stairs, then Space and Enter
+  along the bottom; walking is by tapping and swiping the map. The rest
+  (previous messages, local map, symbols, fast fight, credits, the boss
+  key) are in the *More* menu, with the settings;
 * *i* shows your items on the right of the screen (and again goes back to
   the stats). Tapping an item offers what to do with it: use or unuse,
   eat (food and berries), throw, figure out, examine or drop, each shown

@@ -59,9 +59,9 @@
     upright: {
       // Esc on its own, then the F keys in groups, then help and More.
       top: ['esc', '', 'F3', 'F4', '', 'F5', '', 'help', 'more'],
-      // Direction keys | commands; a gap row; stairs, Space and Enter.
-      bottom: ['nw', 'n', 'ne', '', 'inv', 'a', 's', 'w', '', 'e', '', 'm', 'p', 'r', 'sw', 'so', 'se', '', 'S', 'rest', 'Z',
-        '', '', '', '', '', '', '', 'down', 'up', ['space', 'wide4'], 'enter'],
+      // Commands below the screen (walk by tapping or swiping the map): six
+      // across, the stairs apart, then Space and Enter.
+      bottom: ['inv', 'a', 's', 'm', 'p', 'r', 'S', 'rest', 'Z', '', 'down', 'up', ['space', 'wide5'], 'enter'],
     },
   };
 
@@ -710,7 +710,6 @@
     el('div', { className: 'row' }, [mk('Previous messages (P)', gameKey('P'))]),
     el('h3', { textContent: 'Game' }),
     el('div', { className: 'row' }, [mk('Fast fight on/off (F)', gameKey('F'))]),
-    el('div', { className: 'row' }, [mk('Quit (Q)', gameKey('Q'))]),
     el('div', { className: 'row' }, [mk('Credits (F9)', gameKey(K.F9))]),
     el('div', { className: 'row' }, [mk('Boss key: fake DOS (F10)', gameKey(K.F10))]),
     el('h3', { textContent: 'Screen' }),

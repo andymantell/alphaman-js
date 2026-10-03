@@ -41,6 +41,7 @@ body.touch .touch-side { display: grid; }
 .tk.wide { grid-column: span 2; }
 .tk.wide3 { grid-column: span 3; }
 .tk.wide4 { grid-column: span 4; }
+.tk.wide5 { grid-column: span 5; }
 .tk.tall { grid-row: span 3; }   /* Space and Enter, side by side */
 .tk.arrow { font-size: 22px; }
 /* The upright layout's key rows (above and below the screen). */
@@ -257,9 +258,11 @@ body.touch #touch-start input, body.touch #touch-start input * { -webkit-user-se
   /* As on the keyboard: Esc on its own, the F keys in groups. */
   body.touch #touch-top { order: -1; flex: none; height: clamp(64px, 10dvh, 88px);
     grid-template-columns: 1fr 12px 1fr 1fr 12px 1fr 12px 1fr 1fr; grid-template-rows: 1fr; }
-  /* Direction keys | commands, then a row of stairs, Space and Enter. */
-  body.touch #touch-bottom { grid-template-columns: 1fr 1fr 1fr 12px 1fr 1fr 1fr; grid-template-rows: 1fr 1fr 1fr 12px 1fr; }
-  body.touch #touch-bottom { order: 1; flex: 1 1 0; min-height: 0; }
+  /* Square keys, six across; whatever height is left goes above the
+     screen, so the map sits lower, nearer the thumbs. */
+  body.touch #touch-bottom { grid-template-columns: repeat(6, 1fr); grid-auto-rows: calc((100vw - 20px) / 6); }
+  body.touch #touch-bottom { order: 1; flex: none; }
+  body.touch #playarea > #viewport { margin-top: auto; }
   /* The screen keeps the height of the map, messages and panel (below), so
      the keys stay put when a whole-screen page is shown instead. */
   body.touch #playarea > #viewport {
@@ -293,7 +296,7 @@ body.kb3d .tk { margin: 1px; }
   body.kb3d.touch #touch-top { height: auto; grid-template-rows: auto;
     grid-template-columns: 1fr 6px 1fr 1fr 6px 1fr 6px 1fr 1fr; }
   body.kb3d.touch #touch-top .tk { aspect-ratio: 1; }
-  body.kb3d.touch #touch-bottom { grid-template-columns: 1fr 1fr 1fr 6px 1fr 1fr 1fr; grid-template-rows: 1fr 1fr 1fr 6px 1fr; }
+  body.kb3d.touch #touch-bottom { grid-auto-rows: calc((100vw - 6px) / 6); }
 }
 /* The answer buttons and the item popup are small pieces of keyboard. */
 body.kb3d #touch-answers { left: 50%; right: auto; transform: translateX(-50%); width: max-content; max-width: 96vw;
