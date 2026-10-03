@@ -58,12 +58,15 @@
       right: ['down', 'up', 'help', 'Z', ['more', 'wide'], ['space', 'wide'], '', '', '', ''],
     },
     upright: {
-      // Esc on its own, then the F keys in groups, then help and More.
-      top: ['esc', '', 'F3', 'F4', '', 'F5', '', 'help', 'more'],
-      // Commands below the screen (walk by tapping or swiping the map): six
-      // across, the stairs apart, then the space bar.  No Enter: a target
-      // is fired at with the Fire answer button (or a second tap on it).
-      bottom: ['inv', 'a', 's', 'm', 'p', 'r', 'S', 'rest', 'Z', '', 'down', 'up', ['space', 'wide6']],
+      // Esc on its own, the F keys, then More.
+      top: ['esc', '', 'F3', 'F4', 'F5', '', 'more'],
+      // Commands below the screen (walk by tapping or swiping the map), in
+      // the order their keys have on a Model M, left to right: a s S r i p
+      // (the letter rows; S is shift+s), then z m < > . ? (the bottom row;
+      // < > . ? are the comma, period and slash keys), then the space bar.
+      // No Enter: a target is fired at with the Fire answer button (or a
+      // second tap on it).
+      bottom: ['a', 's', 'S', 'r', 'inv', 'p', 'Z', 'm', 'down', 'up', 'rest', 'help', ['space', 'wide6']],
     },
   };
 

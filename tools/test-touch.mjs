@@ -224,7 +224,9 @@ async function run(browser, layout, width, height) {
   if (!look.drawn) check(layout, 'F keys light, Esc and Enter grey', look.fLight && look.escGrey, JSON.stringify(look));
   check(layout, 'legend font loaded', look.font);
   if (upright) {
-    check(layout, 'F keys, help, Esc and More above the screen', keys.topAbove && ['F5', 'F3', 'F4', 'help', 'esc', 'more'].every((k) => keys.ids[k] === 'touch-top'), JSON.stringify(keys.ids));
+    check(layout, 'Esc, F keys and More above the screen', keys.topAbove && ['F5', 'F3', 'F4', 'esc', 'more'].every((k) => keys.ids[k] === 'touch-top'), JSON.stringify(keys.ids));
+    const order = await page.$$eval('#touch-bottom .tk', (b) => b.map((x) => x.dataset.k).join(' '));
+    check(layout, 'keys below in their Model M order', order === 'a s S r inv p Z m down up rest help space', order);
     check(layout, 'commands below the screen', ['inv', 'a', 'S', 'down', 'space'].every((k) => keys.ids[k] === 'touch-bottom'), JSON.stringify(keys.ids));
     check(layout, 'the screen sits low, right on the keys', keys.screenOnKeys);
   } else {

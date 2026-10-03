@@ -242,11 +242,12 @@ or off under *Settings*):
   devices (F3), your condition (F4), the main map (F5), *i* (inventory /
   stats), again, search, the mutations, remove trap, save and rest; on the
   right the stairs, help, sleep, *More* and Space.
-  Upright, Esc, F3, F4, F5, help and *More* are in a row above the screen,
+  Upright, Esc, F3, F4, F5 and *More* are in a row above the screen,
   laid out like the top of the keyboard,
   and right under the screen (kept low, near the thumbs) is a keyboard of
-  the other commands, six across, with the stairs, then the space bar
-  along the bottom. There is no Enter key: when the game asks for a
+  the other commands, six across, in the order their keys have on a
+  Model M (a s S r i p, then z m < > . ?), then the space bar along the
+  bottom. There is no Enter key: when the game asks for a
   target, a *Fire* button appears (or tap the cursor's square again); walking is by tapping and swiping the map. The rest
   (previous messages, local map, symbols, fast fight, credits, the boss
   key) are in the *More* menu, with the settings;
