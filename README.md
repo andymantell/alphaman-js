@@ -229,13 +229,16 @@ view is off, so the 2D game plays exactly as before.
 On a touch screen the game gets touch controls (they can also be turned on
 or off under *Settings*):
 
-* the everyday commands as buttons either side of the screen: on the left
-  what you do with items and abilities (use, unuse, eat, drop, throw,
-  figure out, again, examine, mutations, search, remove trap); on the right
-  stats/items (F1/F2 in one button), help, stairs, sleep and rest, then
-  Esc, Enter, the keyboard, *More* and a wide space bar. The rest (previous
-  messages, the F3-F10 screens, fast fight, save, quit) are
-  in the *More* menu, with the settings;
+* the everyday commands as IBM Model M style keys either side of the
+  screen (in portrait, all together under it): on the left *Inv*, the main
+  map (F5), known berries and devices (F3), your condition (F4), again,
+  search, the mutations, remove trap, save, rest and sleep; on the right
+  the stairs, Esc, Enter, the keyboard, help, *More* and a big space bar.
+  The rest (previous messages, local map, symbols, fast fight, quit,
+  credits, the boss key) are in the *More* menu, with the settings;
+* *Inv* shows your items on the right of the screen (and again goes back to
+  the stats). Tapping an item offers what to do with it: use or unuse,
+  eat (food and berries), throw, figure out, examine or drop;
 * to move, touch the screen: you step in the direction of the touch from
   your character (holding keeps walking). Touching outside the map counts
   too, so the stats or the messages are an easy target for walking east or
@@ -245,21 +248,23 @@ or off under *Settings*):
   into something, a new area, a creature coming near (even an invisible
   one, which you may need to fight), or another touch. Arrow keys over the
   bottom-left of the map can be turned on in the *More* menu;
-* when the game asks for something, a tap does the obvious thing: it
-  continues after a message, picks the item tapped in the list on the
-  right, moves the targeting cursor to the square tapped (tap it again to
-  pick it), or, where you type a name or number, brings up the keyboard
-  (the line being typed is shown at the top while the keyboard is up);
+* when the game asks for something, nothing needs typing: a tap continues
+  after a message, picks the item tapped in the list on the right, moves
+  the targeting cursor to the square tapped (tap it again to pick it), or
+  gives a direction; questions with set answers (yes or no, a numbered
+  list, short or long range, stun or kill...) show buttons for them, and
+  where the game asks for a number a number pad appears;
 * fast fight (no space bar needed between blows) starts on; F in the
   *More* menu turns it off;
 * before the game starts, a screen asks for your name, the difficulty and
   the wimpy critter's name, letter and colour (all remembered for next
   time), and the game does not ask for them again, nor for a name when
   starting over after a death;
-* two button styles, EGA and IBM Model M.
+* the game can be played either way up: sideways, with the keys either
+  side of the screen, or upright, with the screen at the top and the keys
+  below.
 
-The game is played sideways. *Play* fills the screen (and on
-Android also keeps it sideways). iPhones have no full screen for web pages;
+*Play* fills the screen where the browser can. iPhones have no full screen for web pages;
 adding AlphaMan to the Home Screen (Share, *Add to Home Screen*) opens it
 without Safari's bars, though saved games there are kept apart from those in
 Safari.

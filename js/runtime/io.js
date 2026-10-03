@@ -44,6 +44,16 @@ const GameWait = {
   next(kind, info = null) { this.label = { kind, info }; },
   // Marks the next line input as a number.
   number() { this.numeric = true; },
+  // Labels the next key wait as a choice between keys: [key, label] pairs.
+  choice(...keys) { this.next('choice', { keys }); },
+  yesNo() { this.choice(['Y', 'Yes'], ['N', 'No']); },
+  // A choice of the numbers 1 to n (one key each).
+  numbers(n) {
+    const keys = [];
+    for (let i = 1; i <= Math.min(n, 9); i++) keys.push([String(i), String(i)]);
+    keys.push(['\x1b', 'None']);
+    this.choice(...keys);
+  },
   set(kind, info) {
     this.kind = kind; this.info = info;
     for (const f of this.listeners) f(kind, info);

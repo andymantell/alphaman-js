@@ -13,7 +13,7 @@
     get(k, d) { try { return localStorage.getItem(k) || d; } catch (e) { return d; } },
     set(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* not kept */ } },
   };
-  const MODE = 'alphaman-touch', THEME = 'alphaman-touch-theme', PAD = 'alphaman-touch-arrows';
+  const MODE = 'alphaman-touch', PAD = 'alphaman-touch-arrows';
   const coarse = matchMedia('(pointer: coarse)');
   const isOn = () => { const m = store.get(MODE, 'auto'); return m === 'on' || (m === 'auto' && coarse.matches); };
 
@@ -28,25 +28,25 @@
   const dirKey = (dx, dy) => DIR[Math.sign(dx) + ',' + Math.sign(dy)];
 
   // The game's commands (from its ? screen), in pairs.  [key, legend, word, class]
-  // Left: things you do with your items and abilities.
+  // Left: looking at things, then doing things.  'inv' shows the items on
+  // the right of the screen (F2), where tapping one offers what to do with
+  // it, or the stats again (F1).
   const LEFT = [
-    ['u', 'u', 'use'], ['U', 'U', 'unuse'],
-    ['e', 'e', 'eat'], ['d', 'd', 'drop'],
-    ['t', 't', 'throw'], ['f', 'f', 'figure'],
-    ['a', 'a', 'again'], ['X', 'X', 'exam'],
+    ['inv', 'Inv', 'items', 'fkey inv'], [K.F5, 'F5', 'map', 'fkey'],
+    [K.F3, 'F3', 'berries', 'fkey'], [K.F4, 'F4', 'condition', 'fkey long'],
+    ['a', 'a', 'again'], ['s', 's', 'search'],
     ['m', 'm', 'mental'], ['p', 'p', 'phys'],
-    ['s', 's', 'search'], ['r', 'r', 'trap'],
+    ['r', 'r', 'trap'], ['S', 'S', 'save', 'fkey'],
+    ['.', '.', 'rest'], ['Z', 'Z', 'sleep'],
   ];
-  // Right: what is shown, stairs and resting, then answering the game.
-  // 'panel' switches the right of the screen between stats (F1) and items
-  // (F2).  The rest of the commands are in the More menu.
+  // Right: stairs, then answering the game.  The rest of the commands are
+  // in the More menu.
   const RIGHT = [
-    ['panel', 'F1/2', 'items', 'fkey panel'], ['?', '?', 'help'],
     ['<', '<', 'down'], ['>', '>', 'up'],
-    ['Z', 'Z', 'sleep'], ['.', '.', 'rest'],
     ['\x1b', 'Esc', 'cancel', 'special'], ['\r', '\u21b5', 'enter', 'special'],
-    ['kbd', '\u2328', 'type', 'special'], ['menu', '\u2261', 'more', 'special'],
-    [' ', '\u2423', 'space', 'move wide'],
+    ['kbd', '\u2328', 'type', 'special'], ['?', '?', 'help'],
+    ['menu', '\u2261', 'more', 'special wide more'],
+    [' ', '\u2423', 'space', 'move wide space'],
   ];
   const PADKEYS = [
     [K.Home, '↖'], [K.ArrowUp, '↑'], [K.PageUp, '↗'],
@@ -80,9 +80,9 @@
   setInterval(() => {
     pumpTarget();
     pumpRun();
-    // The panel key is captioned with what it would show next.
+    // The inventory key is captioned with what it would show next.
     const word = globalThis.rdisp === 2 ? 'stats' : 'items';
-    const cap = panelCaption();
+    const cap = invCaption();
     if (cap && cap.textContent !== word) cap.textContent = word;
     if (!hold || performance.now() < hold.next || KB.buffer.length) return;
     const k = hold.key();
@@ -99,7 +99,7 @@
       if (key === 'kbd') { openKeyboard(); return; }
       if (key === 'menu') { toggleMenu(); return; }
       target = null;
-      if (key === 'panel') { send(globalThis.rdisp === 2 ? K.F1 : K.F2); return; }
+      if (key === 'inv') { closePopup(); send(globalThis.rdisp === 2 ? K.F1 : K.F2); return; }
       startHold(() => key, repeat);
     });
     const up = () => { b.classList.remove('down'); stopHold(); };
@@ -111,7 +111,7 @@
     return b;
   }
   const keyButtons = new Map();
-  const panelCaption = () => keyButtons.get('panel') && keyButtons.get('panel').querySelector('small');
+  const invCaption = () => keyButtons.get('inv') && keyButtons.get('inv').querySelector('small');
   const left = el('div', { className: 'touch-side', id: 'touch-left' }, LEFT.map((k) => makeKey(k, false)));
   const right = el('div', { className: 'touch-side', id: 'touch-right' }, RIGHT.map((k) => makeKey(k, false)));
   playarea.prepend(left);
@@ -142,7 +142,7 @@
       Object.assign(input.style, cellPct(info.col, info.row));
       input.inputMode = info.numeric ? 'numeric' : 'text';
       if (input.value !== info.value) { input.value = info.value; typed = info.value; }
-      typeBox.classList.toggle('show', document.activeElement !== input);
+      typeBox.classList.toggle('show', document.activeElement !== input && !info.numeric);
       textRow = info.row;
     } else if (kind !== null) {
       typeBox.classList.remove('show');
@@ -161,6 +161,86 @@
     if (kind !== null && kind !== 'target') target = null;
   }
   GameWait.listeners.push(showWait);
+
+  // ---- Answer buttons.  When the game asks a question with set answers
+  // (yes / no, a numbered list, short or long range...) or for a number,
+  // they appear at the top of the screen, so nothing has to be typed.
+  const answers = el('div', { id: 'touch-answers' });
+  screenbox.append(answers);
+  function showAnswers(keys) {
+    answers.replaceChildren(...keys.map(([key, label]) => {
+      const b = el('button', { type: 'button', className: 'tk answer' + (label.length > 2 ? ' word' : '') }, [label]);
+      b.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); send(key); });
+      return b;
+    }));
+    answers.classList.add('show');
+  }
+  const NUMPAD = [...'1234567890'].map((d) => [d, d]).concat([['\b', '\u232b'], ['\r', 'OK']]);
+  GameWait.listeners.push((kind, info) => {
+    if (!document.body.classList.contains('touch') || kind === null) return;
+    if (kind === 'choice') showAnswers(info.keys);
+    else if (kind === 'text' && info.numeric) showAnswers(NUMPAD);
+    else answers.classList.remove('show');
+  });
+
+  // ---- Inventory: with the items on the right of the screen, tapping one
+  // offers what to do with it.  The command is sent, then the item when the
+  // game asks which (found again by its name, in case the list changed).
+  const popup = el('div', { id: 'touch-popup', hidden: true });
+  screenbox.append(popup);
+  let pending = null;   // { action, text, t }
+  const rowText = (row) => {
+    let t = '';
+    for (let c = 57; c <= 80; c++) t += String.fromCharCode(cellCode(c, row));
+    return t.trimEnd();
+  };
+  function closePopup() { popup.hidden = true; }
+  function itemAt(cell) {
+    if (GameWait.kind !== 'command' || globalThis.rdisp !== 2 || SCR.vpage > 1 || cell.col < 54) return null;
+    const i = cell.row - 1, code = cellCode(55, cell.row);
+    if (i < 1 || i > ngoody || code !== 96 + i || cellCode(56, cell.row) !== 32) return null;
+    return { i, row: cell.row, text: rowText(cell.row), inUse: cellCode(54, cell.row) === 42 };
+  }
+  function openPopup(item) {
+    const type = Math.abs(goody[item.i][1]);
+    const acts = [item.inUse ? ['U', 'Unuse'] : ['u', 'Use']];
+    if (type === 1 || type === 2 || type === 6) acts.push(['e', 'Eat']);
+    acts.push(['t', 'Throw'], ['f', 'Figure out'], ['X', 'Examine'], ['d', 'Drop']);
+    popup.replaceChildren(
+      el('p', { textContent: item.text }),
+      ...acts.map(([key, label]) => {
+        const b = el('button', { type: 'button', className: 'tk word', textContent: label });
+        b.addEventListener('pointerdown', (e) => {
+          e.preventDefault(); e.stopPropagation(); closePopup();
+          pending = { action: key, text: item.text, t: performance.now() };
+          send(key);
+        });
+        return b;
+      }),
+      (() => {
+        const b = el('button', { type: 'button', className: 'tk word special', textContent: 'Cancel' });
+        b.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); closePopup(); });
+        return b;
+      })(),
+    );
+    popup.style.top = Math.min(item.row, 14) * 100 / 25 + '%';
+    popup.hidden = false;
+  }
+  GameWait.listeners.push((kind, info) => {
+    if (kind !== null) closePopup();
+    if (!pending || kind === null) return;
+    const p = pending;
+    if (performance.now() - p.t > 10000) { pending = null; return; }
+    if (kind === 'choice' && p.action === 'X' && info.keys.some(([k]) => k === 'I')) {
+      setTimeout(() => send('I'));   // examine: an item
+      return;
+    }
+    pending = null;
+    if (kind !== 'item') return;   // the game said something else instead
+    for (let row = 2; row <= info.count + 1; row++) {
+      if (rowText(row) === p.text && cellCode(55, row) === 95 + row) { setTimeout(() => send(String.fromCharCode(95 + row))); return; }
+    }
+  });
 
   // ---- Typing with the phone's keyboard.  In 'text' mode the box holds the
   // line being typed and changes to it are sent as keys; in 'key' mode
@@ -328,7 +408,16 @@
       else target = { x: cell.col, y: cell.row, sentFrom: null };
       return;
     }
+    if (kind === 'direction') {
+      const r = canvas.getBoundingClientRect();
+      const px = e.clientX - (r.left + (localx - 0.5) * r.width / 80), py = e.clientY - (r.top + (localy - 0.5) * r.height / 25);
+      if (Math.hypot(px, py) > r.width / 160) send(dirOf(px, py));
+      return;
+    }
     if (kind === 'command') {
+      const item = itemAt(cell);
+      if (item) { openPopup(item); return; }
+      if (!popup.hidden) { closePopup(); return; }
       if (view3dCovers()) return;
       // On the main map (shown at the start), a tap goes back to the local map.
       if (SCR.vpage === 0) { if (onMap(cell)) send(K.F6); return; }
@@ -339,6 +428,7 @@
     }
     if (kind === 'continue' || kind === 'key') send(' ');
   });
+  popup.addEventListener('pointerdown', (e) => e.stopPropagation());
   const release = () => {
     // A tap that ended before the first step: one step.
     if (hold && hold.walk && !hold.sent && KB.buffer.length === 0) { const k = walkKey(); if (k) send(k); }
@@ -352,7 +442,7 @@
   screenbox.addEventListener('pointerup', release);
   screenbox.addEventListener('pointercancel', release);
 
-  // ---- Full screen and turning the phone sideways.
+  // ---- Full screen.
   const root = document.documentElement;
   const canFullScreen = !!(root.requestFullscreen || root.webkitRequestFullscreen) &&
     (document.fullscreenEnabled || document.webkitFullscreenEnabled);
@@ -361,8 +451,6 @@
   async function enterFullScreen() {
     try {
       await (root.requestFullscreen ? root.requestFullscreen({ navigationUI: 'hide' }) : root.webkitRequestFullscreen());
-      const so = window.screen.orientation;
-      if (so && so.lock) await so.lock('landscape').catch(() => {});
     } catch (e) { /* not allowed: play in the page */ }
   }
   function toggleFullScreen() {
@@ -370,10 +458,6 @@
     else enterFullScreen();
   }
 
-  const rotate = el('div', { className: 'touch-notice', id: 'touch-rotate' }, [
-    el('div', { className: 'big', textContent: '↻' }),
-    el('p', { textContent: 'Turn your device sideways to play AlphaMan.' }),
-  ]);
   // The character: name, difficulty and wimpy critter are asked for here,
   // before the game starts, and remembered.  The game is given them
   // (GameHooks.newGame and GameHooks.wimpy) instead of asking.
@@ -440,7 +524,6 @@
       el('p', { className: 'big', textContent: 'AlphaMan' }),
       form,
       el('div', { className: 'row' }, [play]),
-      el('p', { className: 'muted', textContent: '\u21bb AlphaMan is played with the device turned sideways.' }),
       startNote,
     ]),
   ]);
@@ -450,7 +533,7 @@
         'Saved games played from the Home Screen are kept apart from those in Safari.'
       : '';
   }
-  document.body.append(rotate, start);
+  document.body.append(start);
   let started = false, player = null, releaseReady = null;
   const ready = new Promise((resolve) => { releaseReady = resolve; });
   const begin = () => {
@@ -499,24 +582,20 @@
   };
   const gameKey = (k) => () => { menu.hidden = true; send(k); };
   const modeSel = el('select', {}, [['auto', 'Automatic'], ['on', 'On'], ['off', 'Off']].map(([v, t]) => el('option', { value: v, textContent: t })));
-  const themeSel = el('select', {}, [['ega', 'EGA'], ['modelm', 'IBM Model M']].map(([v, t]) => el('option', { value: v, textContent: t })));
   const padBox = el('input', { type: 'checkbox' });
   const fsButton = mk('Full screen', () => { menu.hidden = true; toggleFullScreen(); });
   const gameRows = el('div', { className: 'game-only' }, [
     el('h3', { textContent: 'Look' }),
-    el('div', { className: 'row' }, [mk('Main map (F5)', gameKey(K.F5)), mk('Local map (F6)', gameKey(K.F6))]),
-    el('div', { className: 'row' }, [mk('Known berries & devices (F3)', gameKey(K.F3))]),
-    el('div', { className: 'row' }, [mk('Condition (F4)', gameKey(K.F4)), mk('Symbols (F7)', gameKey(K.F7))]),
+    el('div', { className: 'row' }, [mk('Local map (F6)', gameKey(K.F6)), mk('Symbols (F7)', gameKey(K.F7))]),
     el('div', { className: 'row' }, [mk('Previous messages (P)', gameKey('P'))]),
     el('h3', { textContent: 'Game' }),
     el('div', { className: 'row' }, [mk('Fast fight on/off (F)', gameKey('F'))]),
-    el('div', { className: 'row' }, [mk('Save (S)', gameKey('S')), mk('Quit (Q)', gameKey('Q'))]),
+    el('div', { className: 'row' }, [mk('Quit (Q)', gameKey('Q'))]),
     el('div', { className: 'row' }, [mk('Credits (F9)', gameKey(K.F9))]),
     el('div', { className: 'row' }, [mk('Boss key: fake DOS (F10)', gameKey(K.F10))]),
     el('h3', { textContent: 'Screen' }),
     el('div', { className: 'row' }, canFullScreen ? [fsButton] : []),
     el('label', {}, [padBox, 'Arrow keys (otherwise tap the map to move)']),
-    el('label', {}, ['Buttons ', themeSel]),
   ]);
   menu.append(
     gameRows,
@@ -533,19 +612,19 @@
   menu.addEventListener('keydown', (e) => e.stopPropagation());   // its controls are not game keys
 
   modeSel.value = store.get(MODE, 'auto');
-  themeSel.value = store.get(THEME, 'ega');
   padBox.checked = store.get(PAD, 'off') === 'on';   // off: tap the map to move
   modeSel.addEventListener('change', () => { store.set(MODE, modeSel.value); apply(); });
-  themeSel.addEventListener('change', () => { store.set(THEME, themeSel.value); apply(); });
   padBox.addEventListener('change', () => { store.set(PAD, padBox.checked ? 'on' : 'off'); apply(); });
 
   function apply() {
     const on = isOn(), b = document.body.classList;
     b.toggle('touch', on);
     b.toggle('touch-pad', on && padBox.checked);
-    b.toggle('tk-ega', themeSel.value !== 'modelm');
-    b.toggle('tk-modelm', themeSel.value === 'modelm');
-    if (!on) { typeBox.classList.remove('show'); items.classList.remove('show'); strip.classList.remove('show'); }
+    b.add('tk-modelm');   // the buttons look like IBM Model M keys
+    if (!on) {
+      for (const x of [typeBox, items, strip, answers]) x.classList.remove('show');
+      closePopup();
+    }
     else showWait(GameWait.kind, GameWait.info);
     updateStart();
   }

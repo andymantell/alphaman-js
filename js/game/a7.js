@@ -533,7 +533,10 @@ async function Examine(tric) {
     ljnk(259, 1, 27, 1); ljnk(259, 28, 25, 2); ljnk(8, 11, 11, 3);
   }
   exam: for (;;) {
-    if (not(tric)) { PrintMessage(7, 0); await PauseForKey(); } else st1 = 'S';
+    if (not(tric)) {
+      PrintMessage(7, 0);
+      GameWait.choice(['I', 'An item'], ['S', 'A square'], ['\x1b', 'Cancel']); await PauseForKey();
+    } else st1 = 'S';
     switch (ucase$(st1)) {
       case '?': await Help(5); return;
       case 'I':   // item

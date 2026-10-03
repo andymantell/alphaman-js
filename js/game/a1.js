@@ -48,7 +48,7 @@ async function AlphaMan(commandLine) {
         supr = qb(ucase$(name$) === ucase$(jnk$(277, 20, 13)));    // true or false
         MakeCharacter(supr); EquipCharacter(supr);
 
-        locate(21, 27); color(9, 0); Printjnk(321, 1, 27); await PauseForKey();
+        locate(21, 27); color(9, 0); Printjnk(321, 1, 27); GameWait.yesNo(); await PauseForKey();
         if (ucase$(st1) === 'Y') {
           ccls(0); await Help(1); screenPages(0, 0);
           didstuff = FALSE; MakeCommandScreen();
@@ -85,7 +85,7 @@ async function AlphaMan(commandLine) {
       if (bitit) {
         ccls(0); ccls(1); ccls(3); clpage2(); screenPages(0);
         if (bitit < 0) {
-          color(13); locate(10, 25); Printjnk(170, 41, 27); await PauseForKey();
+          color(13); locate(10, 25); Printjnk(170, 41, 27); GameWait.yesNo(); await PauseForKey();
           color(2); locate(13, 25); Printjnk(273, 23, 34);
           color(10); locate(12, 25); Printjnk(273, 1, 22);
           if (ucase$(st1) === 'Y') {
@@ -295,7 +295,8 @@ async function AlphaMan(commandLine) {
             break;
           case 81:      // Q(uit)
             ClearMess();
-            ljnk(311, 17, 21, 2); PrintMessage(12, 0); await PauseForKey();
+            ljnk(311, 17, 21, 2); PrintMessage(12, 0);
+            GameWait.choice(['Y', 'Save'], ['N', "Don't save"], ['\x1b', 'Cancel']); await PauseForKey();
             if (ucase$(st1) === chr$(89)) {
               await Save();
               expr = -1000; st1 = 'no'; await Dead(1);
@@ -1499,7 +1500,7 @@ async function Use() {
                 fatadd = 6; ClearMess(); ljnk(232, 21, 20, 1);
                 PrintMessage(11, 0);
                 for (;;) {   // jetp:
-                  await PauseForKey();
+                  GameWait.next('direction'); await PauseForKey();
                   response = 1000 * (len(st1) - 1) + asc(right$(st1, 1));
                   if (response === 27) { didstuff = FALSE; ClearMess(); PrintMessage(1, 0); break ud3; }
                   if (response >= 1071 && response <= 1081) {
@@ -1750,7 +1751,7 @@ async function Use() {
                     ClearMess();
                     ljnk(314, 1, 28, 1); PrintMessage(14, 0);
                     phasr: for (;;) {
-                      await PauseForKey(); k = asc(st1);
+                      GameWait.choice(['s', 'Stun'], ['k', 'Kill'], ['\x1b', 'Cancel']); await PauseForKey(); k = asc(st1);
                       switch (k) {
                         case 27: didstuff = FALSE; ClearMess(); break ud;
                         case 83: case 115: damtype = 27; rng = Math.fround(rng + 4); break phasr;  // stun

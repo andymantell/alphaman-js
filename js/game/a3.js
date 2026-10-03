@@ -215,7 +215,7 @@ async function GotGrinch(beast) {
     await MessPause(13, 0); ClearMess();
 
     await EndScreen(0); ClearMess();
-    ljnk(407, 27, 40, 2); PrintMessage(13, 0); await PauseForKey(); ClearMess();
+    ljnk(407, 27, 40, 2); PrintMessage(13, 0); GameWait.yesNo(); await PauseForKey(); ClearMess();
     if (ucase$(st1) === 'Y') {
       ljnk(416, 1, 32, 2); await MessPause(14, 0); st1 = jnk$(406, 53, 10); await Dead(3);
     } else {
@@ -1053,7 +1053,7 @@ async function Teleport(tBer) {
       } else {
         ClearMess();
         ljnk(62, 1, 38, 1); ljnk(62, 39, 25, 2);
-        PrintMessage(9, 0); await PauseForKey(); aa = asc(st1);
+        PrintMessage(9, 0); GameWait.choice(['s', 'Short'], ['l', 'Long'], ['\x1b', 'Cancel']); await PauseForKey(); aa = asc(st1);
       }
       switch (aa) {
         case 83: case 115: {  // short
@@ -1249,7 +1249,7 @@ async function Throw(launch) {
     if (agin && keysave2 && (launch === 0)) {
       i = keysave1; locate(23, 29); print(chr$(i));
     } else {
-      await PauseForKey();
+      GameWait.next('item', { pak: 0, count: ngoody, extras: 0 }); await PauseForKey();
       i = asc(st1); keysave1 = i;
     }
     if (i === 27) { didstuff = FALSE; ClearMess(); PrintMessage(7, 0); return; }
@@ -1723,7 +1723,7 @@ async function UseMono() {
             if (knownb[i]) print('  (', BerEff$(scratch[i]), ')');
             println(); locate(null, 20);
           }
-          println(); locate(null, 20); Printjnk(327, 35, 28); await PauseForKey(); b = cint(val(st1));
+          println(); locate(null, 20); Printjnk(327, 35, 28); GameWait.numbers(numbr); await PauseForKey(); b = cint(val(st1));
           if (b > 0 && b <= numbr) {
             numused = numused + 1;
             screenPages(vpage);
@@ -1801,7 +1801,7 @@ async function UseMono() {
             locate(null, 20);
           }
           println(); locate(null, 20); Printjnk(327, 35, 20); print('?');
-          await PauseForKey();
+          GameWait.numbers(numbr); await PauseForKey();
           b = cint(val(st1));
           if (b > 0 && b <= numbr) {
             screenPages(vpage); ngoody = ngoody + 1;
@@ -1841,7 +1841,7 @@ async function UseMono() {
         } else if (numused < 4) {
           Printjnk(99, 44, 15);  //  "Would you like "
         } else {
-          Printjnk(126, 32, 34); await PauseForKey();
+          Printjnk(126, 32, 34); GameWait.yesNo(); await PauseForKey();
           if (ucase$(st1) === 'Y') {
             dex = dex - 1; hits = hits - lvl; ShowHits();
             if (hits < 0) {
@@ -1885,7 +1885,7 @@ async function UseMono() {
           case -3: nn = nwep + best + cRoll(cRoll(nrwep - best));
             aaa$ = wepnm$(nn); aa$ = 'some '; a$ = 's?'; break;
         }
-        println(aa$, aaa$, a$); await PauseForKey();
+        println(aa$, aaa$, a$); GameWait.yesNo(); await PauseForKey();
         if (ucase$(st1) === 'Y') {
           ngoody = ngoody + 1; gdy[ngoody] = aaa$; numused = numused + 1;
           switch (des) {
@@ -1959,7 +1959,7 @@ async function UseMono() {
             }
             Printjnk(a, b, c);
           }
-          await PauseForKey(); b = cint(val(st1));
+          GameWait.numbers(numbr); await PauseForKey(); b = cint(val(st1));
           if (b > 0 && b <= numbr) {
             numsel = scratch[b]; numused = numused + 1;
             switch (numsel) {

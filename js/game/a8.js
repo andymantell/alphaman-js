@@ -316,7 +316,7 @@ async function Compute(mainp) {
   };
   const pickNumber = async (n) => {
     for (;;) {
-      await PauseForKey();
+      GameWait.numbers(n); await PauseForKey();
       aa = cint(val(st1)); if (aa < 1 || aa > n) { Wrong(); continue; }
       return;
     }
@@ -1322,7 +1322,8 @@ async function UseMutat(i) {
             a = 70; b = 12; c = 38; didstuff = FALSE;
             break;
           case 2:  // sci genius
-            ljnk(351, 1, 49, 1); PrintMessage(14, 0); await PauseForKey();
+            ljnk(351, 1, 49, 1); PrintMessage(14, 0);
+            GameWait.choice(['C', 'Construct'], ['D', 'Dismantle'], ['\x1b', 'Cancel']); await PauseForKey();
             if (ucase$(st1) === 'C') {
               i = await BuildGoody(i);
             } else if (ucase$(st1) === 'D') {

@@ -287,7 +287,7 @@ async function Dead(spec) {
     qbOpen(2, filout$, 'BINARY'); lof2 = qbFile(2).lof(); qbClose(2);
     if (lof2 > 0) {
       if (spec !== 3) {
-        locate(24, 1); print('Delete ', filout$, ' [N]:'); await PauseForKey();
+        locate(24, 1); print('Delete ', filout$, ' [N]:'); GameWait.yesNo(); await PauseForKey();
       } else {
         st1 = 'Y';
       }
