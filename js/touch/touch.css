@@ -62,7 +62,9 @@ body.touch .touch-side { display: grid; }
    seam, in the model's light and grey colours.  It is sliced so it stretches
    to any key without bending the corners.  Keys sit in near-black wells in a
    textured case, as on the real keyboard (colours from photos of one).
-   Light keys for letters and F keys, grey for Esc, Enter, More and arrows. */
+   Light keys for letters and F keys, grey for Esc, Enter, More and arrows.
+   With WebGL, the keyboard drawn from the model's keycap (end of this file)
+   replaces this look once each group is drawn. */
 @font-face { font-family: 'Varela Round'; src: url(varela-round.woff2) format('woff2'); font-display: swap; }
 body.tk-modelm {
   --mm-case: #c9c8c3; --mm-well: #1a1a1a;
@@ -279,3 +281,55 @@ body.pm #screen { position: absolute; left: 0; top: 0; visibility: hidden; }
 body.pm #touch-type, body.pm #touch-items { display: none !important; }
 body.pm #touch-pad { bottom: 3%; left: 2%; width: 30%; }
 body.pm #touch-popup { top: 4px !important; left: 4px; right: 4px; max-width: none; }
+
+/* ---- The rendered Model M keyboard (js/touch/keyboard3d.js).  body.kb3d is
+   set when it can be drawn; until each group's picture is ready (and if it
+   never is) its keys keep the CSS look above.  Buttons and taps are
+   unchanged: the picture is only the group's background. */
+/* Less case: keys 2px apart, so neighbours share a well. */
+body.kb3d .touch-side, body.kb3d .touch-keys { padding: 3px; gap: 0; }
+body.kb3d .tk { margin: 1px; }
+@media (orientation: portrait) {
+  body.kb3d.touch #touch-top { height: auto; grid-template-rows: auto;
+    grid-template-columns: 1fr 6px 1fr 1fr 6px 1fr 6px 1fr 1fr; }
+  body.kb3d.touch #touch-top .tk { aspect-ratio: 1; }
+  body.kb3d.touch #touch-bottom { grid-template-columns: 1fr 1fr 1fr 6px 1fr 1fr 1fr; grid-template-rows: 1fr 1fr 1fr 6px 1fr; }
+}
+/* The answer buttons and the item popup are small pieces of keyboard. */
+body.kb3d #touch-answers { left: 50%; right: auto; transform: translateX(-50%); width: max-content; max-width: 96vw;
+  padding: 6px; gap: 0; border-radius: 7px; }
+body.kb3d #touch-answers .tk.word { min-width: 44px; padding: 0 12px 4px; }
+body.kb3d #touch-popup { padding: 6px; gap: 0; border-radius: 7px; }
+body.kb3d #touch-popup p { padding: 3px 6px 4px; margin: 0; }
+@media (orientation: landscape) { body.kb3d #touch-popup { width: max-content; max-width: min(58%, 340px); } }
+
+/* A drawn group: its picture, and keys with no look of their own. */
+body.kb3d :is(#touch-top, #touch-bottom, #touch-left, #touch-right, #touch-answers, #touch-popup, #touch-pad).kb3d-drawn { background-position: 0 0; background-size: 100% 100%; background-repeat: no-repeat; background-origin: border-box; }
+body.kb3d .kb3d-drawn .tk { border-image: none !important; box-shadow: none !important; background: none !important; }
+body.kb3d .kb3d-drawn .tk.down { transform: none; filter: none; }
+body.kb3d #touch-answers.kb3d-drawn { filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.7)); }
+body.kb3d #touch-popup.kb3d-drawn { background-color: transparent; border-color: transparent; box-shadow: none; filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.8)); }
+body.kb3d #touch-popup.kb3d-drawn p { color: var(--mm-legend); font-weight: 600; }
+/* Pressed, and the glow for Space / Enter: on the cap itself. */
+body.kb3d .kb3d-drawn .tk::before {
+  content: ''; position: absolute; pointer-events: none;
+  left: 3px; right: 3px; top: calc(var(--cap-y, 0px) + 2px); height: calc(var(--cap-h, 100%) - 4px);
+  border-radius: 5px;
+}
+body.kb3d .kb3d-drawn .tk.down::before { background: rgba(0, 0, 0, 0.16); }
+body.kb3d .kb3d-drawn .tk.glow::before { box-shadow: 0 0 0 2px #55ffff, 0 0 12px #55ffff; }
+
+/* Legends on the cap tops. */
+body.kb3d .touch-keys .tk { padding: calc(var(--cap-y, 0px) + 14px) 0 0 16px; }
+body.kb3d .touch-keys .tk small { left: 14px; bottom: calc(var(--cap-b, 0px) + 18px); }
+body.kb3d .touch-keys .tk.arrow { padding: 0 0 12px; }
+/* Sideways the caps are small, at the top of each button, with the key's
+   name printed on the case underneath. */
+body.kb3d .touch-side .tk { justify-content: flex-start; padding: 6px 0 0 1px; align-items: center; font-size: 12px; -webkit-text-stroke: 0.3px var(--mm-legend); }
+body.kb3d .touch-side .tk small { left: -3px; right: -3px; bottom: auto; top: calc(var(--cap-h, 35px) + 4px); text-align: center;
+  font-size: 9px; letter-spacing: -0.2px; color: #3b3b40; -webkit-text-stroke: 0; }
+body.kb3d .touch-side .tk.long small { font-size: 7.5px; }
+body.kb3d #touch-answers .tk { padding: 0 0 12px; font-size: 17px; }
+body.kb3d #touch-answers .tk.word { padding: 0 12px 12px; font-size: 15px; }
+body.kb3d #touch-popup .tk { justify-content: flex-start; padding: 9px 0 0; font-size: 17px; }
+body.kb3d #touch-popup .tk small { margin-top: 4px; font-size: 9.5px; }

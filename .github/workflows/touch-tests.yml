@@ -25,10 +25,11 @@ jobs:
         with:
           node-version: 22
 
-      # Both at once: a second npm install would remove the first.
-      - name: Install Playwright, Chromium and eslint
+      # All at once: a second npm install would remove the first.  three is
+      # served to the page in place of the CDN copy (the drawn keyboard).
+      - name: Install Playwright, Chromium, eslint and three.js
         run: |
-          npm install --no-save --no-package-lock playwright@1 eslint@10
+          npm install --no-save --no-package-lock playwright@1 eslint@10 three@0.170.0
           npx playwright install --with-deps chromium
 
       - name: Lint and async checks

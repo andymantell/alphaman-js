@@ -230,7 +230,14 @@ On a touch screen the game gets touch controls (they can also be turned on
 or off under *Settings*):
 
 * the everyday commands as IBM Model M keys (light keys, with Esc, Enter,
-  More and the arrows grey, in a textured case). Sideways they are in
+  More and the arrows grey, in a textured case). Each group of keys, and
+  the answer buttons and item popup, is drawn once with three.js from a
+  real Model M keycap (`js/touch/keyboard3d.js`, `js/touch/keycap.json`)
+  and the buttons sit on top of the picture; it is drawn again only when
+  a group changes size or its keys change. Caps are never narrower than
+  they are tall, so sideways they are small squares with each key's name
+  printed on the case below. Without WebGL the keys are drawn in CSS
+  instead. Sideways they are in
   columns either side of the screen: on the left Esc, known berries and
   devices (F3), your condition (F4), the main map (F5), *i* (inventory /
   stats), again, search, the mutations, remove trap, save and rest; on the
@@ -301,7 +308,9 @@ Developer tools:
   Chromium, sideways and upright: everything the panel on the right shows,
   the inventory popup, picking items, the answer buttons, whole-screen
   pages, walking by touch, and that the upright layout copies the game
-  screen exactly (needs playwright and its Chromium). GitHub runs it on
+  screen exactly, and that the keyboard is drawn from the keycap (needs
+  playwright and its Chromium; for the drawn keyboard also three@0.170.0,
+  which it serves in place of the CDN copy). GitHub runs it on
   every push (the *Touch control tests* workflow), separately from the
   deploy, so for now a failure does not stop the site being published
 * `node tools/check-for-bounds.mjs` - finds `for` loops whose end value can
@@ -316,10 +325,12 @@ The screen font is the IBM VGA 9x16 font from
 
 The touch keys' legends are in Varela Round (SIL Open Font License 1.1,
 `js/touch/varela-round-OFL.txt`), standing in for the rounded Helvetica of
-the Model M's keycaps. The keycaps are drawn from measurements of
-"IBM Model M Keyboard" (https://skfb.ly/6ZFM6) by timblewee, licensed under
-Creative Commons Attribution (http://creativecommons.org/licenses/by/4.0/);
-nothing of the model itself is included.
+the Model M's keycaps. The keycap shape in `js/touch/keycap.json` is taken
+from "IBM Model M Keyboard" (https://skfb.ly/6ZFM6) by timblewee, licensed
+under Creative Commons Attribution 4.0
+(http://creativecommons.org/licenses/by/4.0/). Changes: one keycap cut out
+of the model and stored as integers; the keyboard is laid out, stretched
+and lit by this program.
 
 ## License
 

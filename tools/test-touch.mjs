@@ -22,6 +22,29 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const require = createRequire(import.meta.url);
 let playwright;
 try { playwright = require('playwright'); } catch { playwright = require('/opt/node-tools/node_modules/playwright'); }
+// three.js for the drawn Model M keyboard (js/touch/keyboard3d.js), served
+// locally instead of from the CDN: install three@0.170.0 next to playwright.
+let threeDir = null;
+for (const from of [root + '/', '/opt/node-tools/']) {
+  try { threeDir = path.resolve(path.dirname(createRequire(from).resolve('three')), '..'); break; } catch { /* try the next */ }
+}
+const THREE_CDN = 'https://cdn.jsdelivr.net/npm/three@0.170.0/';
+const serveThree = (page) => page.route(THREE_CDN + '**', (r) => (threeDir
+  ? r.fulfill({ path: path.join(threeDir, r.request().url().slice(THREE_CDN.length)), contentType: 'text/javascript' })
+  : r.abort()));
+// Each drawn group records what it drew: the caps, in the order of its keys.
+const drawnCaps = (page, holder) => page.evaluate((id) => {
+  const h = document.getElementById(id);
+  return h.classList.contains('kb3d-drawn') ? JSON.parse(h.dataset.kb3d)[0] : null;
+}, holder);
+async function waitDrawn(page, ids) {
+  for (let i = 0; i < 100; i++) {
+    const drawn = await page.evaluate(() => (window.AlphaManKeyboard3D ? AlphaManKeyboard3D.drawn() : []));
+    if (ids.every((id) => drawn.includes(id))) return true;
+    await wait(page, 200);
+  }
+  return false;
+}
 
 // A small static server for the page.
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.webmanifest': 'application/manifest+json' };
@@ -127,6 +150,7 @@ const freeStep = (page) => page.evaluate(() => {
 async function run(browser, layout, width, height) {
   const ctx = await browser.newContext({ viewport: { width, height }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
   const page = await ctx.newPage();
+  await serveThree(page);
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto(URL_);
@@ -140,6 +164,24 @@ async function run(browser, layout, width, height) {
   let s = await state(page);
   const answers = await page.$$eval('#touch-answers.show .tk', (b) => b.map((x) => x.textContent));
   check(layout, 'overview question has Y / N buttons', s.kind === 'choice' && answers.join() === 'Y,N', JSON.stringify(answers));
+  // The keyboard drawn from the Model M keycap.
+  const groups = upright ? ['touch-top', 'touch-bottom'] : ['touch-left', 'touch-right'];
+  if (!threeDir) console.log(`skip [${layout}] drawn keyboard: three.js is not installed`);
+  else {
+    check(layout, 'keyboard drawn from the keycap', await waitDrawn(page, [...groups, 'touch-answers']));
+    const fit = await page.evaluate((ids) => ids.map((id) => {
+      const h = document.getElementById(id), r = h.getBoundingClientRect(), cs = getComputedStyle(h);
+      const caps = JSON.parse(h.dataset.kb3d)[0];
+      return { id, size: cs.backgroundSize, img: cs.backgroundImage.startsWith('url("data:image/png'), w: caps.W === Math.round(r.width * 4) / 4, n: caps.caps.length === h.querySelectorAll('.tk').length,
+        square: caps.caps.every((c) => c.w >= c.h - 0.01) };
+    }), [...groups, 'touch-answers']);
+    check(layout, 'each group shows its drawing over its whole area', fit.every((f) => f.size === '100% 100%' && f.img && f.w && f.n), JSON.stringify(fit));
+    check(layout, 'no cap narrower than it is tall', fit.every((f) => f.square), JSON.stringify(fit));
+    const holder = upright ? 'touch-top' : 'touch-left', caps = (await drawnCaps(page, holder)).caps;
+    const order = await page.$$eval(`#${holder} .tk`, (b) => b.map((x) => x.dataset.k));
+    const grey = (id) => caps[order.indexOf(id)].grey;
+    check(layout, 'drawn Esc grey, F keys light', grey('esc') && !grey('F3') && !grey('F5'), JSON.stringify(order));
+  }
   await page.tap('#touch-answers .tk >> text="N"');
   s = await settle(page);
   check(layout, 'game waits for a command', s.kind === 'command', s.kind);
@@ -172,10 +214,12 @@ async function run(browser, layout, width, height) {
       escFirst: [first('touch-top'), first('touch-left')].includes(k('esc')),
       fLight: src('F3') === src('a'), escGrey: src('esc') !== src('F3') && src('esc') === src('enter'),
       font: document.fonts.check("15px 'Varela Round'"),
+      drawn: !!document.querySelector('.kb3d-drawn .tk[data-k=esc]'),
     };
   });
   check(layout, 'Esc comes first, as on the keyboard', look.escFirst);
-  check(layout, 'F keys light, Esc and Enter grey', look.fLight && look.escGrey, JSON.stringify(look));
+  // (Drawn keys have no look of their own; their colours are checked above.)
+  if (!look.drawn) check(layout, 'F keys light, Esc and Enter grey', look.fLight && look.escGrey, JSON.stringify(look));
   check(layout, 'legend font loaded', look.font);
   if (upright) {
     check(layout, 'F keys, help, Esc and More above the screen', keys.topAbove && ['F5', 'F3', 'F4', 'help', 'esc', 'more'].every((k) => keys.ids[k] === 'touch-top'), JSON.stringify(keys.ids));
@@ -242,6 +286,14 @@ async function run(browser, layout, width, height) {
     // Each action with the game's key for it.
     const want = [m.inUse ? 'U unuse' : 'u use', ...(m.edible ? ['e eat'] : []), 't throw', 'f figure out', 'X examine', 'd drop', 'Esc cancel'];
     check(layout, `popup for "${m.text}"`, pop.shown && pop.title === m.text && pop.acts.join() === want.join(), JSON.stringify(pop));
+    if (threeDir) {
+      await waitDrawn(page, ['touch-popup']);
+      const d = await page.evaluate(() => {
+        const h = document.getElementById('touch-popup'), caps = h.dataset.kb3d && JSON.parse(h.dataset.kb3d)[0];
+        return { size: getComputedStyle(h).backgroundSize, caps: caps && caps.caps.length, keys: h.querySelectorAll('.tk').length, cancelGrey: caps && caps.caps.at(-1).grey };
+      });
+      check(layout, 'popup drawn as a piece of keyboard, cancel grey', d.size === '100% 100%' && d.caps === d.keys && d.cancelGrey, JSON.stringify(d));
+    }
     await page.tap('#touch-popup .tk >> text=cancel');
     await wait(page, 150);
   }
@@ -370,6 +422,7 @@ async function run(browser, layout, width, height) {
 
 async function desktop(browser) {
   const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  await serveThree(page);
   await page.goto(URL_);
   await wait(page, 800);
   const d = await page.evaluate(() => ({
@@ -382,7 +435,8 @@ async function desktop(browser) {
   await page.close();
 }
 
-const browser = await playwright.chromium.launch();
+// WebGL in headless Chromium, for the drawn keyboard.
+const browser = await playwright.chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 try {
   await run(browser, 'landscape', 844, 390);
   await run(browser, 'portrait', 390, 844);
