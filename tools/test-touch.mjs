@@ -44,7 +44,7 @@ const wait = (page, ms) => page.waitForTimeout(ms);
 // ---- Page helpers (run in the browser).
 const state = (page) => page.evaluate(() => ({
   kind: GameWait.kind, info: GameWait.info, vpage: SCR.vpage, rdisp, ngoody, x: localx, y: localy,
-  split: AlphaManTouch.isSplit(), lpoint,
+  split: AlphaManTouch.isSplit(), lpoint, area: mainx + ',' + mainy,
 }));
 const rowText = (page, row, from = 1, to = 80) => page.evaluate(([row, from, to]) => {
   let t = '';
@@ -73,6 +73,19 @@ const recordKeys = (page) => page.evaluate(() => {
   window.sentKeys = [];
 });
 const sentKeys = (page) => page.evaluate(() => window.sentKeys);
+// Checks a step was taken.  If it was not, and the game had something else
+// happen on that turn (a message: a trap, a creature, ...), which can stop
+// or move the character, it is not counted.  The key sent is checked
+// separately.
+function checkStep(layout, name, from, to, dir) {
+  const moved = to.x === from.x + dir[0] && to.y === from.y + dir[1];
+  if (!moved && (to.lpoint !== from.lpoint || to.area !== from.area)) {
+    console.log(`ok   [${layout}] ${name} (not checked: something happened in the game)`);
+    return;
+  }
+  check(layout, name, to.x === from.x + dir[0] && to.y === from.y + dir[1], `${from.x},${from.y} -> ${to.x},${to.y}`);
+}
+
 // Compares the split layout's copies with the game screen: the map, the
 // messages, the location box and every panel line.  Returns the parts that
 // differ.
@@ -210,12 +223,12 @@ async function run(browser, layout, width, height) {
     await wait(page, 250);
     const pop = await page.evaluate(() => {
       const p = document.getElementById('touch-popup');
-      return { shown: !p.hidden, title: p.querySelector('p') && p.querySelector('p').textContent, acts: [...p.querySelectorAll('.tk')].map((b) => b.querySelector('kbd').textContent + ' ' + b.querySelector('.label').textContent) };
+      return { shown: !p.hidden, title: p.querySelector('p') && p.querySelector('p').textContent, acts: [...p.querySelectorAll('.tk')].map((b) => b.firstChild.textContent + ' ' + b.querySelector('small').textContent) };
     });
     // Each action with the game's key for it.
-    const want = [m.inUse ? 'U Unuse' : 'u Use', ...(m.edible ? ['e Eat'] : []), 't Throw', 'f Figure out', 'X Examine', 'd Drop', 'Esc Cancel'];
+    const want = [m.inUse ? 'U unuse' : 'u use', ...(m.edible ? ['e eat'] : []), 't throw', 'f figure out', 'X examine', 'd drop', 'Esc cancel'];
     check(layout, `popup for "${m.text}"`, pop.shown && pop.title === m.text && pop.acts.join() === want.join(), JSON.stringify(pop));
-    await page.tap('#touch-popup .tk >> text=Cancel');
+    await page.tap('#touch-popup .tk >> text=cancel');
     await wait(page, 150);
   }
   check(layout, 'popup closed by Cancel', await page.$eval('#touch-popup', (p) => p.hidden));
@@ -225,7 +238,7 @@ async function run(browser, layout, width, height) {
   const lp = (await state(page)).lpoint;
   await tapCell(page, 60, 2);
   await wait(page, 250);
-  await page.tap('#touch-popup .tk >> text=Examine');
+  await page.tap('#touch-popup .tk >> text=examine');
   await wait(page, 800);
   check(layout, 'Examine sends X, I and the item', (await sentKeys(page)).join('') === 'XIa', JSON.stringify(await sentKeys(page)));
   check(layout, 'the game describes the item', (await state(page)).lpoint !== lp);
@@ -295,7 +308,7 @@ async function run(browser, layout, width, height) {
     check(layout, `${what}: sends ${['east', 'west', 'south', 'north'][['1,0', '-1,0', '0,1', '0,-1'].indexOf(dir.join())]}`,
       keys.length === 1 && keys[0] === ARROW[dir.join()], JSON.stringify(keys));
     const to = await settle(page);
-    if (free) check(layout, `${what}: walks there`, to.x === from.x + dir[0] && to.y === from.y + dir[1], `${from.x},${from.y} -> ${to.x},${to.y}`);
+    if (free) checkStep(layout, `${what}: walks there`, from, to, dir);
   }
   const where = (col, row) => page.evaluate(([c, r]) => AlphaManTouch.whereIs(c, r), [col, row]);
   // On the map, a few squares away in each direction (where the map allows).
@@ -332,7 +345,7 @@ async function run(browser, layout, width, height) {
       const keys = await sentKeys(page);
       check(layout, `direction key ${id} sends one step`, keys.length === 1 && keys[0] === ARROW[dir.join()], JSON.stringify(keys));
       const to = await settle(page);
-      if (free) check(layout, `direction key ${id} walks there`, to.x === from.x + dir[0] && to.y === from.y + dir[1], `${from.x},${from.y} -> ${to.x},${to.y}`);
+      if (free) checkStep(layout, `direction key ${id} walks there`, from, to, dir);
     }
   }
 

@@ -211,11 +211,7 @@ body.touch #touch-start input, body.touch #touch-start input * { -webkit-user-se
 }
 #touch-popup[hidden] { display: none; }
 #touch-popup p { flex-basis: 100%; margin: 0 0 2px; color: #e4dfd3; font: 13px/1.3 ui-monospace, Consolas, monospace; }
-#touch-popup .tk { height: 40px; padding: 0 12px; font-size: 15px; flex-direction: row; gap: 8px; }
-#touch-popup kbd {
-  font: 600 14px/1 ui-monospace, Consolas, monospace; color: #1e1e1e;
-  padding: 3px 5px; border: 1px solid #6f6a60; border-radius: 3px; background: rgba(0, 0, 0, 0.08);
-}
+#touch-popup .tk.act { width: 64px; height: 56px; font-size: 18px; }
 
 /* Portrait: a row of keys, the game screen, then a keyboard of direction
    keys and commands. */
