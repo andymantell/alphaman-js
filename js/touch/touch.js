@@ -58,8 +58,10 @@
       right: ['down', 'up', 'help', 'Z', ['more', 'wide'], ['space', 'wide'], '', '', '', ''],
     },
     upright: {
-      // Esc on its own, the F keys, then More.
-      top: ['esc', '', 'F3', 'F4', 'F5', '', 'more'],
+      // Esc on its own, the F keys in their groups (F1-F4, F5-F8 on a Model
+      // M), then a wide More.  The space between F4 and F5 is in the middle
+      // of the screen, where phones usually have their camera.
+      top: ['esc', '', 'F3', 'F4', '', 'F5', '', 'more'],
       // Commands below the screen (walk by tapping or swiping the map), in
       // the order their keys have on a Model M, left to right: a s S r i p
       // (the letter rows; S is shift+s), then z m < > . ? (the bottom row;

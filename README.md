@@ -244,7 +244,8 @@ or off under *Settings*):
   stats), again, search, the mutations, remove trap, save and rest; on the
   right the stairs, help, sleep, *More* and Space.
   Upright, Esc, F3, F4, F5 and *More* are in a row above the screen,
-  laid out like the top of the keyboard,
+  laid out like the top of the keyboard (case between F4 and F5, in the
+  middle, where phones usually have their camera),
   and right under the screen (kept low, near the thumbs) is a keyboard of
   the other commands, six across, in the order their keys have on a
   Model M (a s S r i p, then z m < > . ?), then the space bar along the

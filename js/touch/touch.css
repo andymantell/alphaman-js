@@ -233,7 +233,7 @@ body.tk-modelm #touch-fs-back small { position: static; font-size: 12px; }
   body.touch .touch-keys { display: grid; }
   /* As on the keyboard: Esc on its own, the F keys in groups. */
   body.touch #touch-top { order: -1; flex: none; height: clamp(64px, 10dvh, 88px);
-    grid-template-columns: 1fr 12px 1fr 1fr 1fr 12px 1fr; grid-template-rows: 1fr; }
+    grid-template-columns: 1fr 12px 1fr 1fr 40px 1fr 12px 2fr; grid-template-rows: 1fr; }
   /* Square keys, six across; whatever height is left goes above the
      screen, so the map sits lower, nearer the thumbs. */
   body.touch #touch-bottom { grid-template-columns: repeat(6, 1fr); grid-auto-rows: calc((100vw - 20px) / 6); }
@@ -271,7 +271,7 @@ body.kb3d .tk { margin: 1px; }
 @media (orientation: portrait) {
   /* The top row as high as the keys below are wide. */
   body.kb3d.touch #touch-top { height: auto; grid-template-rows: calc((100vw - 6px) / 6);
-    grid-template-columns: 1fr 6px 1fr 1fr 1fr 6px 1fr; }
+    grid-template-columns: 1fr 6px 1fr 1fr 40px 1fr 6px 2fr; }
   body.kb3d.touch #touch-bottom { grid-auto-rows: calc((100vw - 6px) / 6); }
 }
 /* The answer buttons and the item popup are small pieces of keyboard. */
