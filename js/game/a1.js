@@ -95,7 +95,7 @@ async function AlphaMan(commandLine) {
             month = 0; days = 0; hrs = 0; mins = 0; gt$ = ''; a = 0; b = 0; c = 0; t = 0; a$ = '';
             chan = 0; typ = 0; sym = 0; fc = 0; bc = 0; res60 = 0; dotrap = 0; dic = 0; dam = 0;
             oldfatadd = 0; fastfightlocal = 0;
-            Comm$ = (await GameHooks.newGame()) ? '' : await inputString(' ');   // touch: a new character
+            Comm$ = (await GameHooks.newGame(true)) ? '' : await inputString(' ');   // touch: a new character
             ccls(0); continue verytop;
           }
         }

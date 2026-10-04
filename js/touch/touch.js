@@ -160,33 +160,14 @@
   const pad = el('div', { id: 'touch-pad' }, PADKEYS.map((k) => k ? makeKey([k[0], k[1], '', 'move'], true) : el('span')));
   screenbox.append(pad);
 
-  // ---- What the game waits for.
-  const typeBox = el('div', { id: 'touch-type' });
+  // ---- What the game waits for.  Nothing is typed with the phone's
+  // keyboard: numbers have a number pad, everything else buttons or taps.
   const items = el('div', { id: 'touch-items' });
-  const input = el('input', {
-    id: 'touch-input', type: 'text', autocomplete: 'off', spellcheck: false,
-  });
-  input.setAttribute('autocorrect', 'off');
-  input.setAttribute('autocapitalize', 'off');
-  input.setAttribute('enterkeyhint', 'done');
-  input.setAttribute('aria-label', 'Type here');
-  screenbox.append(typeBox, items, input);
+  screenbox.append(items);
 
-  const cellPct = (col, row) => ({ left: (col - 1) * 100 / 80 + '%', top: (row - 1) * 100 / 25 + '%' });
   function showWait(kind, info) {
     if (!document.body.classList.contains('touch')) return;
     keyButtons.get('space').classList.toggle('glow', kind === 'continue');
-    if (kind === 'text') {
-      Object.assign(typeBox.style, cellPct(info.col, info.row), { width: (81 - info.col) * 100 / 80 + '%' });
-      Object.assign(input.style, cellPct(info.col, info.row));
-      input.inputMode = info.numeric ? 'numeric' : 'text';
-      if (input.value !== info.value) { input.value = info.value; typed = info.value; }
-      typeBox.classList.toggle('show', document.activeElement !== input && !info.numeric);
-      textRow = info.row;
-    } else if (kind !== null) {
-      typeBox.classList.remove('show');
-      if (keyMode !== 'key' && document.activeElement === input) input.blur();
-    }
     if (kind === 'item') {
       // The items are on rows 2 to count + 1, the extra choices just below
       // (and "3." on row 1).
@@ -218,7 +199,7 @@
   GameWait.listeners.push((kind, info) => {
     if (!document.body.classList.contains('touch') || kind === null) return;
     if (kind === 'choice') showAnswers(info.keys);
-    else if (kind === 'text' && info.numeric) showAnswers(NUMPAD);
+    else if (kind === 'text') showAnswers(info.numeric ? NUMPAD : [['\r', 'OK']]);   // (no other line is asked for with touch)
     else if (kind === 'target') showAnswers([['\r', info.page === 0 ? 'OK' : 'Fire']]);   // Enter: at the cursor (page 0: a region on the main map)
     else answers.classList.remove('show');
   });
@@ -282,64 +263,6 @@
       if (rowText(row) === p.text && cellCode(55, row) === 95 + row) { setTimeout(() => send(String.fromCharCode(95 + row))); return; }
     }
   });
-
-  // ---- Typing with the phone's keyboard.  In 'text' mode the box holds the
-  // line being typed and changes to it are sent as keys; in 'key' mode
-  // (any other prompt) each character typed is sent at once.
-  let typed = '', keyMode = 'text', textRow = 1;
-  function openKeyboard() {
-    keyMode = GameWait.kind === 'text' ? 'text' : 'key';
-    if (keyMode === 'key') { input.value = ''; typed = ''; input.inputMode = 'text'; }
-    input.focus({ preventScroll: true });
-  }
-  typeBox.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); openKeyboard(); });
-  input.addEventListener('keydown', (e) => {
-    e.stopPropagation();          // the game hears it through the box instead
-    if (e.key === 'Enter') { e.preventDefault(); send('\r'); if (keyMode === 'key') input.blur(); }
-    else if (e.key === 'Escape') { e.preventDefault(); send('\x1b'); input.blur(); }
-    else if (e.key === 'Backspace' && input.value === '' && keyMode === 'key') send('\b');
-  });
-  input.addEventListener('input', () => {
-    const v = input.value;
-    let i = 0;
-    while (i < v.length && i < typed.length && v[i] === typed[i]) i++;
-    for (let j = i; j < typed.length; j++) send('\b');
-    for (const ch of v.slice(i)) {
-      const c = ch.charCodeAt(0);
-      if (c >= 32 && c < 127) send(ch);
-    }
-    typed = v;
-    if (keyMode === 'key') { input.value = ''; typed = ''; }
-  });
-
-  const strip = el('div', { id: 'touch-typing' });
-  const stripCanvas = el('canvas', { width: 720, height: 16 });
-  const done = el('button', { type: 'button', textContent: 'Done' });
-  strip.append(stripCanvas, done);
-  document.body.append(strip);
-  done.addEventListener('pointerdown', (e) => { e.preventDefault(); input.blur(); });
-  input.addEventListener('focus', () => {
-    strip.classList.add('show'); typeBox.classList.remove('show');
-  });
-  input.addEventListener('blur', () => {
-    strip.classList.remove('show');
-    if (GameWait.kind === 'text') typeBox.classList.add('show');
-  });
-  // The strip shows the screen row being typed on (or the bottom rows for
-  // other prompts), copied from the game screen.
-  (function drawStrip() {
-    if (strip.classList.contains('show')) {
-      const ctx = stripCanvas.getContext('2d');
-      if (keyMode === 'text') {
-        if (stripCanvas.height !== 16) stripCanvas.height = 16;
-        ctx.drawImage(canvas, 0, (textRow - 1) * 16, 720, 16, 0, 0, 720, 16);
-      } else {
-        if (stripCanvas.height !== 48) stripCanvas.height = 48;
-        ctx.drawImage(canvas, 0, 22 * 16, 720, 48, 0, 0, 720, 48);
-      }
-    }
-    requestAnimationFrame(drawStrip);
-  })();
 
   // ---- Taps on the game screen.
   const view3dCovers = () => {
@@ -521,7 +444,7 @@
     if (!document.body.classList.contains('touch') || e.target.closest('.tk')) return;
     e.preventDefault();
     const cell = cellAt(e), kind = GameWait.kind;
-    if (kind === 'text') { openKeyboard(); return; }
+    if (kind === 'text') return;
     if (kind === 'item' && cell.col >= 54) {
       const c = cellCode(55, cell.row), next = cellCode(56, cell.row);
       if ((c >= 97 && c <= 122 && next === 32) || (c >= 49 && c <= 51 && next === 46)) send(String.fromCharCode(c));
@@ -680,12 +603,13 @@
   document.body.append(start);
   let started = false, player = null, releaseReady = null;
   const ready = new Promise((resolve) => { releaseReady = resolve; });
+  const fromForm = () => ({
+    name: cleanText(nameBox.value, 20), difficulty,
+    wimp: { name: cleanText(wimpNameBox.value, 20), sym: cleanLetter(letterBox.value), color: wimpColor },
+  });
   const begin = () => {
     if (startingFresh) {
-      player = {
-        name: cleanText(nameBox.value, 20), difficulty,
-        wimp: { name: cleanText(wimpNameBox.value, 20), sym: cleanLetter(letterBox.value), color: wimpColor },
-      };
+      player = fromForm();
       store.set(PLAYER, JSON.stringify({
         name: player.name, difficulty, wimpName: player.wimp.name, wimpSym: player.wimp.sym, wimpColor,
       }));
@@ -702,13 +626,19 @@
     const on = document.body.classList.contains('touch');
     start.classList.toggle('show', on && !started && (startingFresh || (!standalone && !fsElement())));
   }
-  // The game waits here for the character.  With the touch controls off
-  // (or a saved game being loaded) it asks as usual.
+  // The game waits here for the character.  With the touch controls off it
+  // asks as usual; a saved game being loaded has its own, until the player
+  // plays again (again: the game's "play again"), when the remembered
+  // character is used.
   const touchOn = () => document.body.classList.contains('touch');
-  GameHooks.newGame = async () => {
-    if (!touchOn() || !startingFresh) return null;
-    await ready;
-    return player && { name: player.name, difficulty: player.difficulty };
+  let again = false;
+  GameHooks.newGame = async (playAgain) => {
+    if (!touchOn()) return null;
+    if (playAgain) again = true;
+    if (!startingFresh && !again) return null;
+    if (startingFresh) await ready;
+    const p = player || fromForm();
+    return { name: p.name, difficulty: p.difficulty };
   };
   GameHooks.wimpy = async () => {
     if (!touchOn()) return null;
@@ -765,7 +695,7 @@
     b.toggle('touch-pad', on && padBox.checked);
     b.add('tk-modelm');   // the buttons look like IBM Model M keys
     if (!on) {
-      for (const x of [typeBox, items, strip, answers]) x.classList.remove('show');
+      for (const x of [items, answers]) x.classList.remove('show');
       closePopup();
     }
     else showWait(GameWait.kind, GameWait.info);
@@ -775,7 +705,7 @@
   for (const type of ['contextmenu', 'selectstart']) {
     document.addEventListener(type, (e) => {
       const inForm = e.target.closest && e.target.closest('#touch-player');
-      if (document.body.classList.contains('touch') && e.target !== input && !inForm) e.preventDefault();
+      if (document.body.classList.contains('touch') && !inForm) e.preventDefault();
     }, true);
   }
   coarse.addEventListener('change', apply);

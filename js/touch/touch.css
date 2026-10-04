@@ -125,19 +125,6 @@ body.touch.touch-pad #touch-pad { display: grid; }
 #touch-pad .tk { font-size: 18px; }
 
 /* What the game is waiting for. */
-#touch-type {
-  display: none;
-  position: absolute; z-index: 4;
-  height: calc(100% / 25);
-  border: 1px solid #55ffff; border-radius: 2px;
-  box-shadow: 0 0 8px #55ffff, inset 0 0 6px #55ffff;
-  animation: touch-pulse 1.2s ease-in-out infinite alternate;
-}
-#touch-type.show { display: block; }
-#touch-type::after {
-  content: "tap to type"; position: absolute; right: 2px; top: 100%;
-  font: 10px/1.2 system-ui, sans-serif; color: #55ffff; white-space: nowrap;
-}
 #touch-items {
   display: none;
   position: absolute; z-index: 2; pointer-events: none;
@@ -147,25 +134,6 @@ body.touch.touch-pad #touch-pad { display: grid; }
 }
 #touch-items.show { display: block; }
 @keyframes touch-pulse { from { opacity: 0.45; } to { opacity: 1; } }
-
-/* The hidden text box that brings up the phone's keyboard. */
-#touch-input {
-  position: absolute; z-index: 1; left: 0; top: 0;
-  width: 1px; height: 1px; padding: 0; border: 0;
-  opacity: 0; font-size: 16px;   /* 16px stops iOS zooming in */
-  color: transparent; background: transparent; caret-color: transparent;
-}
-
-/* While the keyboard is up: the line being typed, at the top. */
-#touch-typing {
-  display: none;
-  position: fixed; left: 0; right: 0; top: 0; z-index: 20;
-  padding: 4px 8px; gap: 8px; align-items: center;
-  background: #000; border-bottom: 1px solid #55ffff;
-}
-#touch-typing.show { display: flex; }
-#touch-typing canvas { flex: 1; min-width: 0; height: auto; image-rendering: pixelated; }
-#touch-typing button { flex: none; }
 
 /* Settings menu */
 #touch-menu {
@@ -289,7 +257,7 @@ body.pm #screen { position: absolute; left: 0; top: 0; visibility: hidden; }
 #pm canvas { display: block; width: 100%; height: auto; image-rendering: pixelated; }
 #pm-map { position: relative; }
 #pm-panel.pick { outline: 1px solid #55ffff; outline-offset: -1px; box-shadow: inset 0 0 8px #55ffff; }
-body.pm #touch-type, body.pm #touch-items { display: none !important; }
+body.pm #touch-items { display: none !important; }
 body.pm #touch-pad { bottom: 3%; left: 2%; width: 30%; }
 body.pm #touch-popup { top: 4px !important; left: 4px; right: 4px; max-width: none; }
 

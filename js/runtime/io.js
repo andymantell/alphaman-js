@@ -162,7 +162,7 @@ const GameHooks = {
   // Details the touch controls collect before the game starts, so that
   // nothing has to be typed.  Both may wait (for the start screen) and give
   // null when the game should ask as usual.
-  newGame: async () => null,     // { name, difficulty: 0 | 1 | 2 }
+  newGame: async (playAgain) => null,   // { name, difficulty: 0 | 1 | 2 }
   wimpy: async () => null,       // { name, sym, color }
   // The game's instructions where they name keys a touch screen does not
   // have (e.g. aiming: the arrow keys and Enter): given the message lines,

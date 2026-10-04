@@ -244,6 +244,8 @@ async function run(browser, layout, width, height) {
   } else {
     check(layout, 'keys either side of the screen', ['esc', 'F3', 'F4', 'F5', 'inv'].every((k) => keys.ids[k] === 'touch-left') && ['help', 'more', 'space'].every((k) => keys.ids[k] === 'touch-right'), JSON.stringify(keys.ids));
   }
+  check(layout, 'no box for the phone\'s keyboard (everything has buttons)',
+    await page.evaluate(() => [...document.querySelectorAll('input[type=text], textarea')].every((x) => x.closest('#touch-player'))));
   check(layout, 'no direction keys (taps and swipes instead)', !keys.ids.n && !keys.ids.so && !keys.ids.e && !keys.ids.w);
   check(layout, 'Space is a bar across its keys', keys.spaceBar);
   check(layout, 'no Enter key (Fire instead, when aiming)', !keys.ids.enter);
