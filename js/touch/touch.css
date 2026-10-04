@@ -280,7 +280,8 @@ body.kb3d #touch-answers { left: 50%; right: auto; transform: translateX(-50%); 
 body.kb3d #touch-answers .tk.word { min-width: 44px; padding: 0 12px 4px; }
 body.kb3d #touch-popup { padding: 6px; gap: 0; border: 0; border-radius: 7px; }
 body.kb3d #touch-popup p { padding: 3px 6px 4px; margin: 0; }
-@media (orientation: landscape) { body.kb3d #touch-popup { width: max-content; max-width: min(58%, 340px); } }
+/* Sideways: four keys a row (64px keys with 1px margins, 6px of case each side). */
+@media (orientation: landscape) { body.kb3d #touch-popup { width: calc(4 * 66px + 12px); max-width: 58%; } }
 
 /* A drawn group: its picture, and keys with no look of their own. */
 body.kb3d :is(#touch-top, #touch-bottom, #touch-left, #touch-right, #touch-answers, #touch-popup, #touch-pad).kb3d-drawn { background-position: 0 0; background-size: 100% 100%; background-repeat: no-repeat; background-origin: border-box; }
@@ -305,12 +306,13 @@ body.kb3d .kb3d-drawn .tk.glow::before { box-shadow: 0 0 0 2px #55ffff, 0 0 12px
 body.kb3d .touch-keys .tk { padding: calc(var(--cap-y, 0px) + 14px) 0 0 16px; }
 body.kb3d .touch-keys .tk small { left: 14px; bottom: calc(var(--cap-b, 0px) + 18px); }
 body.kb3d .touch-keys .tk.arrow { padding: 0 0 12px; }
-/* Sideways the caps are small, at the top of each button, with the key's
-   name printed on the case underneath. */
-body.kb3d .touch-side .tk { justify-content: flex-start; padding: 6px 0 0 1px; align-items: center; font-size: 12px; -webkit-text-stroke: 0.3px var(--mm-legend); }
-body.kb3d .touch-side .tk small { left: -3px; right: -3px; bottom: auto; top: calc(var(--cap-h, 35px) + 4px); text-align: center;
+/* Sideways the caps are small, centred in each button with the key's name
+   printed on the case underneath; three-letter legends a little smaller. */
+body.kb3d .touch-side .tk { justify-content: flex-start; padding: calc(var(--cap-y, 0px) + 6px) 0 0 1px; align-items: center; font-size: 12px; -webkit-text-stroke: 0.3px var(--mm-legend); }
+body.kb3d .touch-side .tk small { left: -3px; right: -3px; bottom: auto; top: calc(var(--cap-y, 0px) + var(--cap-h, 35px) + 3px); text-align: center;
   font-size: 9px; letter-spacing: -0.2px; color: #3b3b40; -webkit-text-stroke: 0; }
 body.kb3d .touch-side .tk.long small { font-size: 7.5px; }
+body.kb3d .touch-side .tk[data-k=esc] { font-size: 10.5px; letter-spacing: -0.3px; }
 body.kb3d #touch-answers .tk { padding: 0 0 12px; font-size: 17px; }
 body.kb3d #touch-answers .tk.word { padding: 0 12px 12px; font-size: 15px; }
 body.kb3d #touch-popup .tk { justify-content: flex-start; padding: 9px 0 0; font-size: 17px; }

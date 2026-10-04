@@ -53,9 +53,9 @@
   const LAYOUTS = {
     sideways: {
       // Esc and the F keys at the top left, as on the keyboard.
-      left: ['esc', 'F3', 'F4', 'F5', 'inv', 'a', 's', 'm', 'p', 'r', 'S', 'rest'],
-      // (Rows as on the left, the last two empty.)
-      right: ['down', 'up', 'help', 'Z', ['more', 'wide'], ['space', 'wide'], '', '', '', ''],
+      left: ['esc', 'F3', 'F4', 'F5', 'inv', 'a', 's', 'm', 'p', 'r'],
+      // Five rows each side: save and rest join the stairs, help and sleep.
+      right: ['down', 'up', 'help', 'Z', 'S', 'rest', ['more', 'wide'], ['space', 'wide']],
     },
     upright: {
       // Esc on its own, the F keys in their groups (F1-F4, F5-F8 on a Model

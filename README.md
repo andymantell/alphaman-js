@@ -241,8 +241,8 @@ or off under *Settings*):
   instead. Sideways they are in
   columns either side of the screen: on the left Esc, known berries and
   devices (F3), your condition (F4), the main map (F5), *i* (inventory /
-  stats), again, search, the mutations, remove trap, save and rest; on the
-  right the stairs, help, sleep, *More* and Space.
+  stats), again, search, the mutations and remove trap; on the right the
+  stairs, help, sleep, save, rest, *More* and Space (five rows each side).
   Upright, Esc, F3, F4, F5 and *More* are in a row above the screen,
   laid out like the top of the keyboard (case between F4 and F5, in the
   middle, where phones usually have their camera),

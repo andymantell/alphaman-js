@@ -33,6 +33,7 @@ const CHIPS = ['touch-answers', 'touch-popup', 'touch-pad'];
 
 let renderer = null, keycap = null, envMap = null;
 const cache = new Map();    // drawing signature -> picture URL
+const LABEL = 14;           // px for a side key's name printed under its cap
 const TRAVEL = 0.0035;      // how far a cap goes down (metres; a Model M's is about 3.8 mm)
 
 async function setup() {
@@ -195,13 +196,13 @@ function measure(holder) {
   }
   if (!keys.length) return null;
   // Caps are never narrower than they are tall, and never taller than the
-  // narrowest key is wide: a tall button gets a square cap, centred, or in the
-  // side columns at the top with the key's name printed on the case below.
+  // narrowest key is wide: a tall button gets a square cap, centred (in the
+  // side columns, centred with the key's name printed on the case below).
   // Where the cap is goes on the button (--cap-y, --cap-h, --cap-b) for the
   // legends and the pressed look.
   const unit = Math.min(...keys.map((k) => k.w)), atTop = holder.classList.contains('touch-side');
   const caps = keys.map(({ b, ...k }) => {
-    const h = Math.min(k.h, unit), dy = k.h > h && !atTop ? (k.h - h) / 2 : 0;
+    const h = Math.min(k.h, unit), dy = k.h > h ? Math.max(0, (k.h - h - (atTop ? LABEL : 0)) / 2) : 0;
     b.style.setProperty('--cap-y', dy + 'px'); b.style.setProperty('--cap-h', h + 'px'); b.style.setProperty('--cap-b', (k.h - h - dy) + 'px');
     return { ...k, y: k.y + dy, h };
   });
