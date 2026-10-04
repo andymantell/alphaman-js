@@ -451,6 +451,48 @@ async function run(browser, layout, width, height) {
   await ctx.close();
 }
 
+// Full screen: some phones leave it when turned round.  Then a button over
+// the screen and the next tap put it back; turned off in More, it stays off.
+async function fullScreen(browser) {
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const page = await ctx.newPage();
+  await serveThree(page);
+  await page.goto(URL_);
+  await wait(page, 800);
+  await page.tap('#touch-start .row button');
+  await wait(page, 1500);
+  const fs = () => page.evaluate(() => ({ full: !!document.fullscreenElement, button: !document.getElementById('touch-fs-back').hidden }));
+  const played = await fs();
+  if (!played.full) { console.log('skip [full screen] this Chromium does not go full screen'); await ctx.close(); return; }
+  await page.setViewportSize({ width: 844, height: 390 });
+  await page.evaluate(() => document.exitFullscreen());   // as the phone does
+  await wait(page, 300);
+  const lost = await fs();
+  await page.touchscreen.tap(420, 200);
+  await wait(page, 500);
+  const back = await fs();
+  check('full screen', 'left on turning: a button shows, and a tap puts it back', !lost.full && lost.button && back.full && !back.button, JSON.stringify([lost, back]));
+  // Left again, not by turning: only the button puts it back.
+  await wait(page, 2100);
+  await page.evaluate(() => document.exitFullscreen());
+  await wait(page, 300);
+  await page.touchscreen.tap(420, 200);
+  await wait(page, 400);
+  const notTurned = await fs();
+  await page.tap('#touch-fs-back');
+  await wait(page, 500);
+  const byButton = await fs();
+  check('full screen', 'left otherwise: the button puts it back', !notTurned.full && notTurned.button && byButton.full && !byButton.button, JSON.stringify([notTurned, byButton]));
+  // Turned off in More: no button.
+  await page.tap('.tk[data-k=more]');
+  await wait(page, 200);
+  await page.click('#touch-menu button >> text="Full screen"');
+  await wait(page, 500);
+  const off = await fs();
+  check('full screen', 'turned off in More, it stays off', !off.full && !off.button, JSON.stringify(off));
+  await ctx.close();
+}
+
 async function desktop(browser) {
   const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
   await serveThree(page);
@@ -473,6 +515,7 @@ const browser = await playwright.chromium.launch({ args: ['--use-gl=angle', '--u
 try {
   await run(browser, 'landscape', 844, 390);
   await run(browser, 'portrait', 390, 844);
+  await fullScreen(browser);
   await desktop(browser);
 } finally {
   await browser.close();

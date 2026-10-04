@@ -285,7 +285,9 @@ or off under *Settings*):
   game screen, which the game draws as always; other screens (help, lists)
   are shown whole.
 
-*Play* fills the screen where the browser can. iPhones have no full screen for web pages;
+*Play* fills the screen where the browser can (if the phone leaves full
+screen when turned round, the next tap puts it back; otherwise a *full
+screen* button appears over the game, and *More* turns it off). iPhones have no full screen for web pages;
 adding AlphaMan to the Home Screen (Share, *Add to Home Screen*) opens it
 without Safari's bars, though saved games there are kept apart from those in
 Safari.

@@ -572,15 +572,35 @@
     (document.fullscreenEnabled || document.webkitFullscreenEnabled);
   const fsElement = () => document.fullscreenElement || document.webkitFullscreenElement;
   const standalone = matchMedia('(display-mode: standalone), (display-mode: fullscreen)').matches || navigator.standalone === true;
+  // Some phones leave full screen when turned round.  If the player had it
+  // on and did not turn it off in More, a button over the screen puts it
+  // back, and when it was the turning, so does the next tap anywhere (a page
+  // may only ask for full screen straight after a tap).
+  let wantFull = false, turnedAt = -1e9, tapBack = false;
+  matchMedia('(orientation: portrait)').addEventListener('change', () => { turnedAt = performance.now(); });
   async function enterFullScreen() {
     try {
       await (root.requestFullscreen ? root.requestFullscreen({ navigationUI: 'hide' }) : root.webkitRequestFullscreen());
+      wantFull = true;
     } catch (e) { /* not allowed: play in the page */ }
+    fsBack.hidden = true;
   }
   function toggleFullScreen() {
-    if (fsElement()) (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+    if (fsElement()) { wantFull = false; (document.exitFullscreen || document.webkitExitFullscreen).call(document); }
     else enterFullScreen();
   }
+  const fsBack = el('button', { type: 'button', id: 'touch-fs-back', className: 'tk special', hidden: true }, ['\u26f6', el('small', { textContent: 'full screen' })]);
+  screenbox.append(fsBack);
+  const lostFull = () => wantFull && !fsElement() && document.body.classList.contains('touch');
+  const onFsChange = () => {
+    fsBack.hidden = !lostFull();
+    tapBack = lostFull() && performance.now() - turnedAt < 2000;
+  };
+  fsBack.addEventListener('click', enterFullScreen);
+  document.addEventListener('fullscreenchange', onFsChange);
+  document.addEventListener('webkitfullscreenchange', onFsChange);
+  // pointerup (not pointerdown) is a tap browsers accept for full screen.
+  document.addEventListener('pointerup', () => { if (tapBack && lostFull()) { tapBack = false; enterFullScreen(); } }, true);
 
   // The character: name, difficulty and wimpy critter are asked for here,
   // before the game starts, and remembered.  The game is given them

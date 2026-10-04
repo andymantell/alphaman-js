@@ -228,6 +228,13 @@ body.touch #touch-start.show { display: flex; }
 body.touch #touch-start input, body.touch #touch-start input * { -webkit-user-select: text; user-select: text; }
 
 /* Answer buttons for the game's questions, at the top of the screen. */
+/* Back to full screen, when the phone left it (touch.js). */
+#touch-fs-back { position: absolute; z-index: 7; right: 6px; top: 6px; height: 44px; padding: 0 14px 4px; font-size: 18px; }
+body.tk-modelm #touch-fs-back { flex-direction: row; align-items: center; justify-content: center; gap: 7px;
+  border-image-width: 7px 8px 3px 8px; padding: 0 14px 4px; }
+body.tk-modelm #touch-fs-back small { position: static; font-size: 12px; }
+#touch-fs-back[hidden] { display: none; }
+
 #touch-answers {
   display: none;
   position: absolute; z-index: 5; left: 0; right: 0; top: 2%;
