@@ -236,13 +236,12 @@ or off under *Settings*):
   and the buttons sit on top of the picture; it is drawn again only when
   a group changes size or its keys change. A key being pressed goes down
   and springs back up, drawn in 3D just around it. Caps are never narrower than
-  they are tall, so sideways they are small squares with each key's name
-  printed on the case below. Without WebGL the keys are drawn in CSS
-  instead. Sideways they are in
-  columns either side of the screen: on the left Esc, known berries and
+  they are tall. Without WebGL the keys are drawn in CSS
+  instead. Sideways they are a column of wide keys either side of the
+  screen, each with its name on the cap: on the left Esc, known berries and
   devices (F3), your condition (F4), the main map (F5), *i* (inventory /
   stats), again, search, the mutations and remove trap; on the right the
-  stairs, help, sleep, save, rest, *More* and Space (five rows each side).
+  stairs, help, sleep, save, rest, *More* and Space.
   Upright, Esc, F3, F4, F5 and *More* are in a row above the screen,
   laid out like the top of the keyboard (case between F4 and F5, in the
   middle, where phones usually have their camera),

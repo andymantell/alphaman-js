@@ -53,9 +53,10 @@
   const LAYOUTS = {
     sideways: {
       // Esc and the F keys at the top left, as on the keyboard.
+      // One column of wide keys each side (like a Model M's Tab and Ctrl),
+      // each with its name on the cap beside its letter.
       left: ['esc', 'F3', 'F4', 'F5', 'inv', 'a', 's', 'm', 'p', 'r'],
-      // Five rows each side: save and rest join the stairs, help and sleep.
-      right: ['down', 'up', 'help', 'Z', 'S', 'rest', ['more', 'wide'], ['space', 'wide']],
+      right: ['down', 'up', 'help', 'Z', 'S', 'rest', 'more', 'space'],
     },
     upright: {
       // Esc on its own, the F keys in their groups (F1-F4, F5-F8 on a Model

@@ -33,7 +33,7 @@ body.touch #game, body.touch #game * { -webkit-user-select: none; user-select: n
   display: none;
   flex: none; align-self: stretch;
   width: var(--side);
-  grid-template-columns: 1fr 1fr; grid-auto-rows: 1fr;
+  grid-template-columns: 1fr; grid-auto-rows: 1fr;
   gap: 3px; padding: 3px;
   touch-action: none;
 }
@@ -106,9 +106,12 @@ body.tk-modelm .tk.down { transform: translateY(1px); filter: brightness(0.95); 
 body.tk-modelm .tk.glow { box-shadow: 0 0 0 2px var(--mm-well), 0 0 0 4px #55ffff, 0 0 12px #55ffff; }
 .gap { visibility: hidden; }
 /* Sideways the keys are narrow: proportionally narrower skirts, legends centred. */
-body.tk-modelm .touch-side .tk { border-image-width: 8px 7px 3px 7px; padding: 12px 0 0; align-items: center; font-size: 13px; }
-body.tk-modelm .touch-side .tk small { left: 0; right: 0; text-align: center; bottom: 7px; font-size: 7.5px; letter-spacing: -0.3px; }
-body.tk-modelm .touch-side .tk.long small { font-size: 6.5px; letter-spacing: -0.35px; }
+/* Sideways: one column of wide keys, the name beside the letter. */
+body.tk-modelm .touch-side .tk { border-image-width: 7px 9px 3px 9px; flex-direction: row; align-items: center; justify-content: flex-start;
+  gap: 4px; padding: 0 0 5px 10px; font-size: 14px; }
+body.tk-modelm .touch-side .tk small { position: static; font-size: 9.5px; letter-spacing: -0.2px; white-space: nowrap; }
+body.tk-modelm .touch-side .tk.long small, body.tk-modelm .touch-side .tk[data-k=esc] small { font-size: 8px; letter-spacing: -0.3px; }
+body.tk-modelm .touch-side .tk[data-k=esc] { font-size: 13px; }
 /* Keys elsewhere (answers, the item popup): the legend centred. */
 body.tk-modelm #touch-answers .tk, body.tk-modelm #touch-popup .tk { border-image-width: 7px 8px 3px 8px; padding: 0 0 4px; align-items: center; justify-content: center; }
 body.tk-modelm #touch-popup .tk small { position: static; margin-top: 3px; }
@@ -306,13 +309,8 @@ body.kb3d .kb3d-drawn .tk.glow::before { box-shadow: 0 0 0 2px #55ffff, 0 0 12px
 body.kb3d .touch-keys .tk { padding: calc(var(--cap-y, 0px) + 14px) 0 0 16px; }
 body.kb3d .touch-keys .tk small { left: 14px; bottom: calc(var(--cap-b, 0px) + 18px); }
 body.kb3d .touch-keys .tk.arrow { padding: 0 0 12px; }
-/* Sideways the caps are small, centred in each button with the key's name
-   printed on the case underneath; three-letter legends a little smaller. */
-body.kb3d .touch-side .tk { justify-content: flex-start; padding: calc(var(--cap-y, 0px) + 6px) 0 0 1px; align-items: center; font-size: 12px; -webkit-text-stroke: 0.3px var(--mm-legend); }
-body.kb3d .touch-side .tk small { left: -3px; right: -3px; bottom: auto; top: calc(var(--cap-y, 0px) + var(--cap-h, 35px) + 3px); text-align: center;
-  font-size: 9px; letter-spacing: -0.2px; color: #3b3b40; -webkit-text-stroke: 0; }
-body.kb3d .touch-side .tk.long small { font-size: 7.5px; }
-body.kb3d .touch-side .tk[data-k=esc] { font-size: 10.5px; letter-spacing: -0.3px; }
+/* Sideways (one column of wide keys): the legends on the cap's top. */
+body.kb3d .touch-side .tk { padding: 0 0 6px 10px; }
 body.kb3d #touch-answers .tk { padding: 0 0 12px; font-size: 17px; }
 body.kb3d #touch-answers .tk.word { padding: 0 12px 12px; font-size: 15px; }
 body.kb3d #touch-popup .tk { justify-content: flex-start; padding: 9px 0 0; font-size: 17px; }
